@@ -1,7 +1,6 @@
 # Node.js
 node_modules/
 npm-debug.log
-.env
 .DS_Store
 
 # TypeScript
@@ -12,3 +11,8 @@ dist/
 .vscode/
 .idea/
 .history/
+
+# Environment files
+.env
+.env.development
+.env.production

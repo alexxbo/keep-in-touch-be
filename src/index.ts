@@ -1,12 +1,11 @@
-import express from 'express';
+import dotenv from 'dotenv';
+import app from './app';
 
-const app = express();
+dotenv.config();
+
 const port = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-  res.send('Hello from Keep in Touch BE!');
-});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`API documentation (mock): http://localhost:${port}/api-docs`);
 });
