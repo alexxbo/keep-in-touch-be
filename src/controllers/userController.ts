@@ -1,4 +1,5 @@
 import {NextFunction, Request, Response} from 'express';
+import {logger} from '../utils/logger';
 
 export const getAllUsers = async (
   req: Request,
@@ -7,7 +8,7 @@ export const getAllUsers = async (
 ) => {
   try {
     //TODO: Implement get all users logic
-    console.log('Fetching all users');
+    logger.debug('Fetching all users');
     const users = [
       // This is a placeholder. Replace with actual database query.
       {id: '1', name: 'John Doe', email: 'john.doe@example.com'},
@@ -26,7 +27,7 @@ export const getUserById = async (
 ) => {
   try {
     //TODO: Implement get user by ID logic
-    console.log(`Fetching user with ID: ${req.params.id}`);
+    logger.debug(`Fetching user with ID: ${req.params.id}`);
     const user = null;
     if (!user) {
       return res.status(404).json({message: 'User not found'});
@@ -48,7 +49,7 @@ export const createUser = async (
       return res.status(400).json({message: 'Name and email are required.'});
     }
     //TODO: Implement create logic
-    console.log(`Creating user with name: ${name} and email: ${email}`);
+    logger.debug(`Creating user with name: ${name} and email: ${email}`);
     res.status(201).json({
       id: 'testing-id',
       name,
@@ -67,8 +68,8 @@ export const updateUser = async (
   try {
     const {name, email} = req.body;
     //TODO: Implement update logic
-    console.log('Updating user with data:', {name, email});
-    console.log(`Updating user with ID: ${req.params.id}`);
+    logger.debug('Updating user with data:', {name, email});
+    logger.debug(`Updating user with ID: ${req.params.id}`);
     const updatedUser = null; // Replace with actual update logic
     if (!updatedUser) {
       return res.status(404).json({message: 'User not found'});
