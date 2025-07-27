@@ -37,10 +37,7 @@ if (process.env.NODE_ENV === 'production') {
 export const logger = winston.createLogger({
   level: isProduction ? 'info' : 'debug',
   levels: winston.config.npm.levels,
-  format: combine(
-    timestamp({format: 'DD-MM-YYYY HH:mm:ss'}),
-    errors({stack: true}),
-    logFormat,
-  ),
+  defaultMeta: {service: 'keep-in-touch-be'},
   transports,
+  exitOnError: false,
 });

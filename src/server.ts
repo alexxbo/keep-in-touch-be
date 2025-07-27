@@ -5,11 +5,37 @@ import {logger} from './utils/logger';
 
 dotenv.config();
 
-(async () => {
-  await connectToDatabase();
-  const PORT = process.env.PORT || 3000;
+process.on('uncaughtException', (err: Error) => {
+  logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  logger.error(`${err.name}: ${err.message}\n${err.stack}`);
+  process.exit(1);
+});
 
-  app.listen(PORT, () => {
-    logger.info(`🚀 Server is running on port ${PORT}`);
-  });
+let server: import('http').Server;
+
+(async () => {
+  try {
+    await connectToDatabase();
+    const PORT = process.env.PORT || 3000;
+    server = app.listen(PORT, () => {
+      logger.info(`🚀 Server is running on port ${PORT}`);
+    });
+  } catch (err) {
+    logger.error('Failed to start server:', err);
+    process.exit(1);
+  }
 })();
+
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  logger.error(
+    reason instanceof Error
+      ? `${reason.name}: ${reason.message}\n${reason.stack}`
+      : String(reason),
+  );
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
+});

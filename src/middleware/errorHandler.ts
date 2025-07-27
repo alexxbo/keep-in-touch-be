@@ -26,29 +26,41 @@ const errorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV === 'development') {
-    logger.error(`Error ${err.statusCode} - ${err.status}:`, err.message);
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Log error details
+  logger.error(
+    `${isProduction ? 'Production' : 'Development'} Error ${err.statusCode} - ${err.status}:`,
+    err.message,
+  );
+
+  // Log stack trace in development
+  if (isDevelopment) {
     logger.error(err.stack);
-  } else {
-    logger.error(
-      `Production Error ${err.statusCode} - ${err.status}:`,
-      err.message,
-    );
   }
 
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
+  // Prepare error response
+  const response: {
+    status: string;
+    message: string;
+    error?: BaseError;
+    stack?: string;
+  } = {
+    status: err.status,
+    message: err.message,
+  };
+
+  if (isDevelopment) {
+    response.error = err;
+    response.stack = err.stack;
   }
 
-  res.status(err.statusCode).json({
-    status: 'error',
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err : undefined,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
+  if (!err.isOperational && isProduction) {
+    response.message = 'An unexpected error occurred. Please try again later.';
+  }
+
+  res.status(err.statusCode).json(response);
 };
 
 export default errorHandler;
