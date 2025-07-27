@@ -1,14 +1,24 @@
 import {NextFunction, Request, Response} from 'express';
 import {logger} from '../utils/logger';
 
-interface CustomError extends Error {
-  statusCode?: number;
-  status?: string;
-  isOperational?: boolean;
+export class BaseError extends Error {
+  statusCode: number;
+  status: string;
+  isOperational: boolean;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+
+    this.statusCode = statusCode;
+    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
 const errorHandler = (
-  err: CustomError,
+  err: BaseError,
   req: Request,
   res: Response,
   next: NextFunction, // eslint-disable-line @typescript-eslint/no-unused-vars

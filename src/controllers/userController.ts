@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {NextFunction, Request, Response} from 'express';
-import {logger} from '../utils/logger';
+import {BaseError} from '../middleware/errorHandler';
+import User from '../models/User';
 
 export const getAllUsers = async (
   req: Request,
@@ -7,13 +9,7 @@ export const getAllUsers = async (
   next: NextFunction,
 ) => {
   try {
-    //TODO: Implement get all users logic
-    logger.debug('Fetching all users');
-    const users = [
-      // This is a placeholder. Replace with actual database query.
-      {id: '1', name: 'John Doe', email: 'john.doe@example.com'},
-      {id: '2', name: 'Jane Smith', email: 'jane.smith@example.com'},
-    ];
+    const users = await User.find();
     res.json(users);
   } catch (error) {
     next(error);
@@ -26,11 +22,9 @@ export const getUserById = async (
   next: NextFunction,
 ) => {
   try {
-    //TODO: Implement get user by ID logic
-    logger.debug(`Fetching user with ID: ${req.params.id}`);
-    const user = null;
+    const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({message: 'User not found'});
+      throw new BaseError('User not found', 404);
     }
     res.json(user);
   } catch (error) {
@@ -45,17 +39,26 @@ export const createUser = async (
 ) => {
   try {
     const {name, email} = req.body;
+
     if (!name || !email) {
-      return res.status(400).json({message: 'Name and email are required.'});
+      throw new BaseError('Name and email are required.', 400);
     }
-    //TODO: Implement create logic
-    logger.debug(`Creating user with name: ${name} and email: ${email}`);
-    res.status(201).json({
-      id: 'testing-id',
-      name,
-      email,
-    });
-  } catch (error) {
+
+    const newUser = new User({name, email});
+    await newUser.save();
+
+    res.status(201).json(newUser);
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      const message = Object.values(error.errors)
+        .map((val: any) => val.message)
+        .join(', ');
+      return next(new BaseError(message, 400));
+    }
+    // MongoDB duplicate key error code
+    if (error.code === 11000) {
+      return next(new BaseError('Email already exists.', 409));
+    }
     next(error);
   }
 };
@@ -67,15 +70,31 @@ export const updateUser = async (
 ) => {
   try {
     const {name, email} = req.body;
-    //TODO: Implement update logic
-    logger.debug('Updating user with data:', {name, email});
-    logger.debug(`Updating user with ID: ${req.params.id}`);
-    const updatedUser = null; // Replace with actual update logic
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {name, email},
+      {
+        new: true,
+        runValidators: true,
+        context: 'query',
+      },
+    );
+
     if (!updatedUser) {
-      return res.status(404).json({message: 'User not found'});
+      throw new BaseError('User not found', 404);
     }
     res.json(updatedUser);
-  } catch (error) {
+  } catch (error: any) {
+    // Handle Mongoose validation errors or duplicate key errors on update
+    if (error.name === 'ValidationError') {
+      const message = Object.values(error.errors)
+        .map((val: any) => val.message)
+        .join(', ');
+      return next(new BaseError(message, 400));
+    }
+    if (error.code === 11000) {
+      return next(new BaseError('Email already exists.', 409));
+    }
     next(error);
   }
 };
@@ -86,7 +105,10 @@ export const deleteUser = async (
   next: NextFunction,
 ) => {
   try {
-    //TODO: Implement delete logic
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) {
+      throw new BaseError('User not found', 404);
+    }
     res.status(204).send();
   } catch (error) {
     next(error);
