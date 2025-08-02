@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import app from './app';
-import {connectToDatabase} from './config/database';
+import {connectToDatabase} from './config/database.config';
 import {logger} from './utils/logger';
 
 dotenv.config();
@@ -22,6 +22,7 @@ let server: import('http').Server;
     });
   } catch (err) {
     logger.error('Failed to start server:', err);
+
     process.exit(1);
   }
 })();
@@ -33,9 +34,32 @@ process.on('unhandledRejection', (reason: unknown) => {
       ? `${reason.name}: ${reason.message}\n${reason.stack}`
       : String(reason),
   );
+
   if (server) {
     server.close(() => process.exit(1));
   } else {
     process.exit(1);
+  }
+});
+
+process.on('SIGTERM', () => {
+  logger.info('👋 SIGTERM RECEIVED. Shutting down gracefully');
+
+  if (server) {
+    server.close(() => {
+      logger.info('💥 Process terminated!');
+      process.exit(0);
+    });
+  }
+});
+
+process.on('SIGINT', () => {
+  logger.info('👋 SIGINT RECEIVED. Shutting down gracefully');
+
+  if (server) {
+    server.close(() => {
+      logger.info('💥 Process terminated!');
+      process.exit(0);
+    });
   }
 });

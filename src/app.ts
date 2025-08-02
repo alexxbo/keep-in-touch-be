@@ -2,6 +2,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express, {Request, Response} from 'express';
 import helmet from 'helmet';
+import {StatusCodes} from 'http-status-codes';
 import errorHandler from './middleware/errorHandler';
 import {detailedHttpLogger, httpLogger} from './middleware/httpLogger';
 import apiRoutes from './routes';
@@ -34,13 +35,18 @@ app.use(isProduction ? httpLogger : detailedHttpLogger);
 
 //testing api
 app.get('/test', (req: Request, res: Response) => {
-  res.status(200).json({success: true, message: 'api is working'});
+  res.status(StatusCodes.OK).json({success: true, message: 'api is working'});
 });
 
 app.use('/api', apiRoutes);
 
-app.use('/', (req, res, next) => {
-  next(new BaseError(`Can't find ${req.method} ${req.originalUrl}`, 404));
+app.use('/', (req, _, next) => {
+  next(
+    new BaseError(
+      `Can't find ${req.method} ${req.originalUrl}`,
+      StatusCodes.NOT_FOUND,
+    ),
+  );
 });
 
 app.use(errorHandler);
