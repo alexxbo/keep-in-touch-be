@@ -14,6 +14,7 @@ const generateToken = (userId: string): string => {
     );
   }
 
+  //TODO: change expiresIn to a more secure value in production
   return jwt.sign({userId}, jwtSecret, {expiresIn: '7d'});
 };
 

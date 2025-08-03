@@ -5,7 +5,7 @@ import {
   login,
   register,
   updateProfile,
-} from '../../controllers/authController';
+} from '../../controllers/user.controller';
 import {authenticateToken} from '../../middleware/auth';
 
 const router = Router();
@@ -15,8 +15,8 @@ router.post('/register', register);
 router.post('/login', login);
 
 // Protected routes
-router.get('/profile', authenticateToken, getProfile);
-router.put('/profile', authenticateToken, updateProfile);
+router.get('/me', authenticateToken, getProfile);
+router.put('/me', authenticateToken, updateProfile);
 router.put('/change-password', authenticateToken, changePassword);
 
-export default router;
+export {router as userRoutes};
