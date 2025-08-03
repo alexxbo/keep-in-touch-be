@@ -20,17 +20,21 @@ export const authenticateToken = async (
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      throw new BaseError(
-        'Access token is required. Please login to continue',
-        StatusCodes.UNAUTHORIZED,
+      return next(
+        new BaseError(
+          'Access token is required. Please login to continue',
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
 
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
+      return next(
+        new BaseError(
+          'JWT secret is not configured',
+          StatusCodes.INTERNAL_SERVER_ERROR,
+        ),
       );
     }
 
@@ -38,9 +42,11 @@ export const authenticateToken = async (
     const user = await User.findById(decoded.userId).select('+password');
 
     if (!user) {
-      throw new BaseError(
-        'Invalid token or user not found',
-        StatusCodes.UNAUTHORIZED,
+      return next(
+        new BaseError(
+          'Invalid token or user not found',
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
 

@@ -3,6 +3,7 @@ import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import {BaseError} from '../utils/BaseError';
+import {runCatching} from '../utils/runCatching';
 
 const generateToken = (userId: string): string => {
   const jwtSecret = process.env.JWT_SECRET;
@@ -16,18 +17,16 @@ const generateToken = (userId: string): string => {
   return jwt.sign({userId}, jwtSecret, {expiresIn: '7d'});
 };
 
-export const register = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
+export const register = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
     const {username, name, email, password} = req.body;
 
     if (!username || !name || !email || !password) {
-      throw new BaseError(
-        'Username, name, email, and password are required',
-        StatusCodes.BAD_REQUEST,
+      return next(
+        new BaseError(
+          'Username, name, email, and password are required',
+          StatusCodes.BAD_REQUEST,
+        ),
       );
     }
 
@@ -37,10 +36,14 @@ export const register = async (
 
     if (existingUser) {
       if (existingUser.username === username) {
-        throw new BaseError('Username already taken', StatusCodes.CONFLICT);
+        return next(
+          new BaseError('Username already taken', StatusCodes.CONFLICT),
+        );
       }
       if (existingUser.email === email) {
-        throw new BaseError('Email already registered', StatusCodes.CONFLICT);
+        return next(
+          new BaseError('Email already registered', StatusCodes.CONFLICT),
+        );
       }
     }
 
@@ -56,23 +59,19 @@ export const register = async (
       user: userResponse,
       token,
     });
-  } catch (error) {
-    next(error);
-  }
-};
+  },
+);
 
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
+export const login = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
     const {identifier, password} = req.body; // identifier can be username or email
 
     if (!identifier || !password) {
-      throw new BaseError(
-        'Username/email and password are required',
-        StatusCodes.BAD_REQUEST,
+      return next(
+        new BaseError(
+          'Username/email and password are required',
+          StatusCodes.BAD_REQUEST,
+        ),
       );
     }
 
@@ -82,15 +81,19 @@ export const login = async (
     }).select('+password');
 
     if (!user) {
-      throw new BaseError(
-        'Invalid credentials or account is inactive',
-        StatusCodes.UNAUTHORIZED,
+      return next(
+        new BaseError(
+          'Invalid credentials or account is inactive',
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      throw new BaseError('Invalid credentials', StatusCodes.UNAUTHORIZED);
+      return next(
+        new BaseError('Invalid credentials', StatusCodes.UNAUTHORIZED),
+      );
     }
 
     user.updateLastSeen();
@@ -105,19 +108,15 @@ export const login = async (
       user: userResponse,
       token,
     });
-  } catch (error) {
-    next(error);
-  }
-};
+  },
+);
 
-export const getProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
+export const getProfile = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED);
+      return next(
+        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+      );
     }
 
     req.user.updateLastSeen();
@@ -126,19 +125,15 @@ export const getProfile = async (
     const userResponse = req.user.getPublicProfile();
 
     res.status(StatusCodes.OK).json({user: userResponse});
-  } catch (error) {
-    next(error);
-  }
-};
+  },
+);
 
-export const updateProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
+export const updateProfile = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED);
+      return next(
+        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+      );
     }
 
     const {username, name, email} = req.body;
@@ -151,7 +146,9 @@ export const updateProfile = async (
         _id: {$ne: req.user._id},
       });
       if (existingUser) {
-        throw new BaseError('Username is already taken', StatusCodes.CONFLICT);
+        return next(
+          new BaseError('Username is already taken', StatusCodes.CONFLICT),
+        );
       }
       updateData.username = username;
     }
@@ -165,7 +162,9 @@ export const updateProfile = async (
         _id: {$ne: req.user._id},
       });
       if (existingUser) {
-        throw new BaseError('Email is already taken', StatusCodes.CONFLICT);
+        return next(
+          new BaseError('Email is already taken', StatusCodes.CONFLICT),
+        );
       }
       updateData.email = email;
     }
@@ -176,7 +175,7 @@ export const updateProfile = async (
     });
 
     if (!updatedUser) {
-      throw new BaseError('User not found', StatusCodes.NOT_FOUND);
+      return next(new BaseError('User not found', StatusCodes.NOT_FOUND));
     }
 
     const userResponse = updatedUser.getPublicProfile();
@@ -185,47 +184,49 @@ export const updateProfile = async (
       message: 'Profile updated successfully',
       user: userResponse,
     });
-  } catch (error) {
-    next(error);
-  }
-};
+  },
+);
 
-export const changePassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
+export const changePassword = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      throw new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED);
+      return next(
+        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+      );
     }
 
     const {currentPassword, newPassword} = req.body;
 
     if (!currentPassword || !newPassword) {
-      throw new BaseError(
-        'Current password and new password are required',
-        StatusCodes.BAD_REQUEST,
+      return next(
+        new BaseError(
+          'Current password and new password are required',
+          StatusCodes.BAD_REQUEST,
+        ),
       );
     }
 
     if (newPassword.length < 6) {
-      throw new BaseError(
-        'New password must be at least 6 characters long',
-        StatusCodes.BAD_REQUEST,
+      return next(
+        new BaseError(
+          'New password must be at least 6 characters long',
+          StatusCodes.BAD_REQUEST,
+        ),
       );
     }
 
     const user = await User.findById(req.user._id).select('+password');
     if (!user) {
-      throw new BaseError('User not found', StatusCodes.NOT_FOUND);
+      return next(new BaseError('User not found', StatusCodes.NOT_FOUND));
     }
 
     const isCurrentPasswordValid = await user.comparePassword(currentPassword);
     if (!isCurrentPasswordValid) {
-      throw new BaseError(
-        'Current password is incorrect',
-        StatusCodes.UNAUTHORIZED,
+      return next(
+        new BaseError(
+          'Current password is incorrect',
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
 
@@ -233,7 +234,5 @@ export const changePassword = async (
     await user.save();
 
     res.status(StatusCodes.OK).json({message: 'Password changed successfully'});
-  } catch (error) {
-    next(error);
-  }
-};
+  },
+);
