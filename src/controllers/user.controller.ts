@@ -1,131 +1,26 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
 
-const generateToken = (userId: string): string => {
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    throw new BaseError(
-      'JWT secret is not configured',
-      StatusCodes.INTERNAL_SERVER_ERROR,
-    );
-  }
-
-  //TODO: change expiresIn to a more secure value in production
-  return jwt.sign({userId}, jwtSecret, {expiresIn: '7d'});
-};
-
-export const register = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {username, name, email, password} = req.body;
-
-    if (!username || !name || !email || !password) {
-      return next(
-        new BaseError(
-          'Username, name, email, and password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
-
-    const existingUser = await User.findOne({
-      $or: [{username}, {email}],
-    });
-
-    if (existingUser) {
-      if (existingUser.username === username) {
-        return next(
-          new BaseError('Username already taken', StatusCodes.CONFLICT),
-        );
-      }
-      if (existingUser.email === email) {
-        return next(
-          new BaseError('Email already registered', StatusCodes.CONFLICT),
-        );
-      }
-    }
-
-    const user = new User({username, name, email, password});
-    await user.save();
-
-    const token = generateToken((user._id as string).toString());
-
-    const userResponse = user.getPublicProfile();
-
-    res.status(StatusCodes.CREATED).json({
-      message: 'User registered successfully',
-      user: userResponse,
-      token,
-    });
-  },
-);
-
-export const login = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {identifier, password} = req.body; // identifier can be username or email
-
-    if (!identifier || !password) {
-      return next(
-        new BaseError(
-          'Username/email and password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
-
-    // Find user by username or email and include password for comparison
-    const user = await User.findOne({
-      $or: [{username: identifier}, {email: identifier}],
-    }).select('+password');
-
-    if (!user) {
-      return next(
-        new BaseError(
-          'Invalid credentials or account is inactive',
-          StatusCodes.UNAUTHORIZED,
-        ),
-      );
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return next(
-        new BaseError('Invalid credentials', StatusCodes.UNAUTHORIZED),
-      );
-    }
-
-    user.updateLastSeen();
-    await user.save();
-
-    const token = generateToken((user._id as string).toString());
-
-    const userResponse = user.getPublicProfile();
-
-    res.status(StatusCodes.OK).json({
-      message: 'Login successful',
-      user: userResponse,
-      token,
-    });
-  },
-);
-
-export const getProfile = runCatching(
+export const getCurrentUser = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(
-        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
       );
     }
 
-    req.user.updateLastSeen();
-    await req.user.save();
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return next(new BaseError('User not found', StatusCodes.NOT_FOUND));
+    }
 
-    const userResponse = req.user.getPublicProfile();
-
-    res.status(StatusCodes.OK).json({user: userResponse});
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      data: {user},
+    });
   },
 );
 
@@ -133,66 +28,50 @@ export const updateProfile = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(
-        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
       );
     }
 
-    const {username, name, email} = req.body;
-    const updateData: {username?: string; name?: string; email?: string} = {};
+    const {name, username} = req.body;
 
+    // Check if username is already taken by another user
     if (username) {
-      // Check if username is already taken by another user
       const existingUser = await User.findOne({
         username,
         _id: {$ne: req.user._id},
       });
       if (existingUser) {
         return next(
-          new BaseError('Username is already taken', StatusCodes.CONFLICT),
+          new BaseError('Username already taken', StatusCodes.CONFLICT),
         );
       }
-      updateData.username = username;
     }
 
-    if (name) updateData.name = name;
+    const updateData: Partial<{name: string; username: string}> = {};
+    if (name !== undefined) updateData.name = name;
+    if (username !== undefined) updateData.username = username;
 
-    if (email) {
-      // Check if email is already taken by another user
-      const existingUser = await User.findOne({
-        email,
-        _id: {$ne: req.user._id},
-      });
-      if (existingUser) {
-        return next(
-          new BaseError('Email is already taken', StatusCodes.CONFLICT),
-        );
-      }
-      updateData.email = email;
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
       runValidators: true,
-    });
+    }).select('-password');
 
-    if (!updatedUser) {
+    if (!user) {
       return next(new BaseError('User not found', StatusCodes.NOT_FOUND));
     }
 
-    const userResponse = updatedUser.getPublicProfile();
-
     res.status(StatusCodes.OK).json({
-      message: 'Profile updated successfully',
-      user: userResponse,
+      status: 'success',
+      data: {user},
     });
   },
 );
 
-export const changePassword = runCatching(
+export const updatePassword = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(
-        new BaseError('User not authenticated', StatusCodes.UNAUTHORIZED),
+        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
       );
     }
 
@@ -202,15 +81,6 @@ export const changePassword = runCatching(
       return next(
         new BaseError(
           'Current password and new password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
-
-    if (newPassword.length < 6) {
-      return next(
-        new BaseError(
-          'New password must be at least 6 characters long',
           StatusCodes.BAD_REQUEST,
         ),
       );
@@ -234,6 +104,45 @@ export const changePassword = runCatching(
     user.password = newPassword;
     await user.save();
 
-    res.status(StatusCodes.OK).json({message: 'Password changed successfully'});
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'Password updated successfully',
+    });
+  },
+);
+
+export const getUserById = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const {id} = req.params;
+
+    const user = await User.findById(id).select(
+      'name username email createdAt',
+    );
+    if (!user) {
+      return next(new BaseError('User not found', StatusCodes.NOT_FOUND));
+    }
+
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      data: {user},
+    });
+  },
+);
+
+export const deleteAccount = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(
+        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
+      );
+    }
+
+    // Hard delete the user account
+    await User.findByIdAndDelete(req.user._id);
+
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'Account deleted successfully',
+    });
   },
 );
