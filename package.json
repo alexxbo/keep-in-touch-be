@@ -28,7 +28,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.5",
     "morgan": "^1.10.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
