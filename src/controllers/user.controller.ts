@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import User from '../models/User';
+import User from '../models/user/user.model';
+import {UpdatePasswordType, UserIdType} from '../models/user/user.schemas';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
 
@@ -75,7 +76,7 @@ export const updatePassword = runCatching(
       );
     }
 
-    const {currentPassword, newPassword} = req.body;
+    const {currentPassword, newPassword} = (req as UpdatePasswordType).body;
 
     if (!currentPassword || !newPassword) {
       return next(
@@ -113,7 +114,7 @@ export const updatePassword = runCatching(
 
 export const getUserById = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {id} = req.params;
+    const {id} = req.params as UserIdType;
 
     const user = await User.findById(id).select(
       'name username email createdAt',

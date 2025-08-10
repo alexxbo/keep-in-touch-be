@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import User from '../models/user/user.model';
 import {BaseError} from '../utils/BaseError';
 
 interface JwtPayload {

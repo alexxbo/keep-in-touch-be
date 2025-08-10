@@ -1,7 +1,14 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import {
+  ForgotPasswordType,
+  LoginType,
+  RefreshTokenType,
+  RegisterUserType,
+  ResetPasswordType,
+} from '../models/auth/auth.schemas';
+import User from '../models/user/user.model';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
 
@@ -20,7 +27,7 @@ const generateToken = (userId: string): string => {
 
 export const register = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {username, name, email, password} = req.body;
+    const {username, name, email, password} = req.body as RegisterUserType;
 
     if (!username || !name || !email || !password) {
       return next(
@@ -65,7 +72,8 @@ export const register = runCatching(
 
 export const login = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {identifier, password} = req.body; // identifier can be username or email
+    // identifier can be username or email
+    const {identifier, password} = req.body as LoginType;
 
     if (!identifier || !password) {
       return next(
@@ -114,7 +122,7 @@ export const login = runCatching(
 
 export const refreshToken = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {refreshToken} = req.body;
+    const {refreshToken} = req.body as RefreshTokenType;
 
     if (!refreshToken) {
       return next(
@@ -141,7 +149,7 @@ export const logout = runCatching(async (req: Request, res: Response) => {
 
 export const forgotPassword = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {email} = req.body;
+    const {email} = req.body as ForgotPasswordType;
 
     if (!email) {
       return next(new BaseError('Email is required', StatusCodes.BAD_REQUEST));
@@ -157,7 +165,7 @@ export const forgotPassword = runCatching(
 
 export const resetPassword = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {
-    const {token, newPassword} = req.body;
+    const {token, newPassword} = req.body as ResetPasswordType;
 
     if (!token || !newPassword) {
       return next(
