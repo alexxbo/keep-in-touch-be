@@ -19,7 +19,6 @@ export interface IUser extends Omit<UserType, '_id'>, Document {
 
 export interface IUserModel extends Model<IUser> {
   findByUsernameOrEmail(identifier: string): Promise<IUser | null>;
-  findActiveById(id: string): Promise<IUser | null>;
 }
 
 const userMongooseSchema = new Schema<IUser, IUserModel>(
@@ -39,8 +38,6 @@ const userMongooseSchema = new Schema<IUser, IUserModel>(
 );
 
 // Indexes for performance
-userMongooseSchema.index({email: 1});
-userMongooseSchema.index({username: 1});
 userMongooseSchema.index({lastSeen: -1});
 userMongooseSchema.index({isActive: 1});
 
@@ -123,7 +120,6 @@ userMongooseSchema.statics.findByUsernameOrEmail = function (
       {username: identifier.trim()},
       {email: identifier.trim().toLowerCase()},
     ],
-    isActive: true, // Only find active users
   });
 };
 
