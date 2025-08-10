@@ -11,7 +11,7 @@ import {validateRequest} from '../../middleware/validation.middleware';
 import {
   updatePasswordSchema,
   updateProfileSchema,
-  userIdSchema,
+  userParamsSchema,
 } from '../../models/user/user.schemas';
 
 const router = Router();
@@ -32,7 +32,7 @@ router.patch(
   updatePassword,
 );
 
-router.get('/:id', validateRequest({params: userIdSchema}), getUserById);
+router.get('/:id', validateRequest({params: userParamsSchema}), getUserById);
 
 router.delete('/me', authenticateToken, deleteAccount);
 

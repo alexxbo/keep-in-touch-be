@@ -1,17 +1,25 @@
 import bcrypt from 'bcryptjs';
 import {Document, model, Model, Schema} from 'mongoose';
-import {PublicProfileType} from './user.schemas';
+import {logger} from '../../utils/logger';
+import {
+  CompleteProfileType,
+  PublicProfileType,
+  UserSummaryType,
+} from './user.schemas';
 import {passwordSchema, UserType} from './user.types';
 
 // The combined interface for Mongoose methods, statics, and the Zod-inferred type
-export interface IUser extends UserType, Document {
+export interface IUser extends Omit<UserType, '_id'>, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
-  updateLastSeen(): void;
+  updateLastSeen(): Promise<void>;
   getPublicProfile(): PublicProfileType;
+  getCompleteProfile(): CompleteProfileType;
+  getUserSummary(): UserSummaryType;
 }
 
 export interface IUserModel extends Model<IUser> {
   findByUsernameOrEmail(identifier: string): Promise<IUser | null>;
+  findActiveById(id: string): Promise<IUser | null>;
 }
 
 const userMongooseSchema = new Schema<IUser, IUserModel>(
@@ -30,6 +38,12 @@ const userMongooseSchema = new Schema<IUser, IUserModel>(
   },
 );
 
+// Indexes for performance
+userMongooseSchema.index({email: 1});
+userMongooseSchema.index({username: 1});
+userMongooseSchema.index({lastSeen: -1});
+userMongooseSchema.index({isActive: 1});
+
 userMongooseSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
@@ -47,27 +61,37 @@ userMongooseSchema.pre('save', async function (next) {
     return next(err);
   }
 
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
+  try {
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+  } catch (error) {
+    next(error instanceof Error ? error : new Error('Password hashing failed'));
+  }
 });
 
 userMongooseSchema.methods.comparePassword = async function (
   candidatePassword: string,
 ): Promise<boolean> {
-  const user = await this.model('User')
-    .findOne({_id: this._id})
-    .select('+password');
-  if (!user) return false;
-  return bcrypt.compare(candidatePassword, user.password);
+  try {
+    const user = await this.model('User')
+      .findOne({_id: this._id})
+      .select('+password');
+    if (!user || !user.password) return false;
+    return await bcrypt.compare(candidatePassword, user.password);
+  } catch (error) {
+    logger.warning('Password comparison failed:', error);
+    return false;
+  }
 };
 
-userMongooseSchema.methods.updateLastSeen = function (): void {
+userMongooseSchema.methods.updateLastSeen = async function (): Promise<void> {
   this.lastSeen = new Date();
+  await this.save();
 };
 
-userMongooseSchema.methods.getPublicProfile = function () {
+userMongooseSchema.methods.getPublicProfile = function (): PublicProfileType {
   return {
-    id: this._id,
+    id: this._id.toString(),
     username: this.username,
     name: this.name,
     email: this.email,
@@ -75,14 +99,31 @@ userMongooseSchema.methods.getPublicProfile = function () {
     lastSeen: this.lastSeen,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
-  } as PublicProfileType;
+  };
+};
+
+userMongooseSchema.methods.getCompleteProfile =
+  function (): CompleteProfileType {
+    return this.getPublicProfile();
+  };
+
+userMongooseSchema.methods.getUserSummary = function (): UserSummaryType {
+  return {
+    id: this._id.toString(),
+    username: this.username,
+    name: this.name,
+  };
 };
 
 userMongooseSchema.statics.findByUsernameOrEmail = function (
   identifier: string,
-) {
+): Promise<IUser | null> {
   return this.findOne({
-    $or: [{username: identifier}, {email: identifier}],
+    $or: [
+      {username: identifier.trim()},
+      {email: identifier.trim().toLowerCase()},
+    ],
+    isActive: true, // Only find active users
   });
 };
 
