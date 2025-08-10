@@ -5,7 +5,7 @@ import {
   getUserById,
   updatePassword,
   updateProfile,
-} from '../../controllers/user.controller';
+} from '../../controllers/users.controller';
 import {authenticateToken} from '../../middleware/auth';
 import {validateRequest} from '../../middleware/validation.middleware';
 import {

@@ -106,7 +106,6 @@ export const login = runCatching(
     }
 
     user.updateLastSeen();
-    await user.save();
 
     const token = generateToken((user._id as string).toString());
 
