@@ -1,5 +1,12 @@
 # Keep in Touch - Backend API
 
+![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)
+![TypeScript](https://img.shields.io/badge/typescript-5.0+-blue.svg)
+![MongoDB](https://img.shields.io/badge/mongodb-5.0+-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 A secure and scalable messaging application backend built with Node.js, Express, TypeScript, and MongoDB.
 
 ## 🚀 Features
