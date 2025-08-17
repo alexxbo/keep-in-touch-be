@@ -34,13 +34,13 @@ const errorHandler = (
 
   // Wrong JWT error
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid JSON web token. Please try again.';
+    const message = 'Auth failed. Please try again.';
     err = new BaseError(message, StatusCodes.UNAUTHORIZED);
   }
 
   // JWT expired error
   if (err.name === 'TokenExpiredError') {
-    const message = 'JSON web token has expired. Please log in again.';
+    const message = 'Auth failed. Please log in again.';
     err = new BaseError(message, StatusCodes.UNAUTHORIZED);
   }
 
