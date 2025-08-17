@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import User from '../models/user/user.model';
-import {UpdatePasswordType, UserParamsType} from '../models/user/user.schemas';
+import {UpdatePasswordType, UserParamsType} from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
 

@@ -1,12 +1,40 @@
 import bcrypt from 'bcryptjs';
 import {Document, model, Model, Schema} from 'mongoose';
+import z from 'zod';
 import {logger} from '../../utils/logger';
+import {
+  emailSchema,
+  nameSchema,
+  objectIdSchema,
+  passwordSchema,
+  roleSchema,
+  usernameSchema,
+} from './user.schemas';
 import {
   CompleteProfileType,
   PublicProfileType,
   UserSummaryType,
-} from './user.schemas';
-import {passwordSchema, UserType} from './user.types';
+} from './user.types';
+
+// Zod schema for a User document as it exists in the database.
+// This is our single source of truth for the core data model.
+export const userDatabaseSchema = z.object({
+  _id: objectIdSchema,
+  username: usernameSchema,
+  name: nameSchema,
+  email: emailSchema,
+  // The database stores the HASHED password.
+  password: z
+    .string()
+    .length(60, {message: 'Hashed password must be 60 characters long'}), // bcrypt hash length
+  role: roleSchema,
+  lastSeen: z.date().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+// Infer the TypeScript type for the full database document
+type UserType = z.infer<typeof userDatabaseSchema>;
 
 // The combined interface for Mongoose methods, statics, and the Zod-inferred type
 export interface IUser extends Omit<UserType, '_id'>, Document {

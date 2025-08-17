@@ -15,7 +15,7 @@ import {
   refreshTokenSchema,
   registerUserSchema,
   resetPasswordSchema,
-} from '../../models/auth/auth.schemas';
+} from '../../validation/auth.schemas';
 
 const router = Router();
 

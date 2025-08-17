@@ -1,61 +1,35 @@
 import {z} from 'zod';
-import {
-  emailSchema,
-  nameSchema,
-  objectIdSchema,
-  passwordSchema,
-  roleSchema,
-  usernameSchema,
-} from './user.types';
 
-export const updatePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: passwordSchema,
-});
+// --- Reusable Zod Primitives for Fields ---
 
-export type UpdatePasswordType = z.infer<typeof updatePasswordSchema>;
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, {message: 'Username must be at least 3 characters long'})
+  .max(30, {message: 'Username cannot exceed 30 characters'})
+  .regex(
+    /^[a-zA-Z0-9_]+$/,
+    'Username can only contain letters, numbers, and underscores',
+  );
 
-export const userParamsSchema = z.object({
-  id: objectIdSchema,
-});
+export const nameSchema = z
+  .string()
+  .trim()
+  .min(1, {message: 'Name is required'})
+  .max(50, {message: 'Name cannot exceed 50 characters'});
 
-export type UserParamsType = z.infer<typeof userParamsSchema>;
+export const emailSchema = z
+  .email('Please fill a valid email address')
+  .trim()
+  .toLowerCase();
 
-export const updateProfileSchema = z
-  .object({
-    name: nameSchema.optional(),
-    username: usernameSchema.optional(),
-  })
-  .refine(data => data.name !== undefined || data.username !== undefined, {
-    message: 'At least one field (name or username) must be provided',
-  });
+export const passwordSchema = z
+  .string()
+  .min(6, {message: 'Password must be at least 6 characters long'})
+  .max(128, {message: 'Password cannot exceed 128 characters'});
 
-export type UpdateProfileType = z.infer<typeof updateProfileSchema>;
+export const roleSchema = z.enum(['user', 'admin']).default('user');
 
-// Schema for public user profile (omits sensitive fields)
-export const publicProfileSchema = z.object({
-  id: objectIdSchema,
-  username: usernameSchema,
-  name: nameSchema,
-  email: emailSchema,
-  role: roleSchema,
-  lastSeen: z.date().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export type PublicProfileType = z.infer<typeof publicProfileSchema>;
-
-// Schema for user's own complete profile
-export const completeProfileSchema = publicProfileSchema;
-
-export type CompleteProfileType = z.infer<typeof completeProfileSchema>;
-
-// Schema for minimal user info (for chat participants, etc.)
-export const userSummarySchema = z.object({
-  id: objectIdSchema,
-  username: usernameSchema,
-  name: nameSchema,
-});
-
-export type UserSummaryType = z.infer<typeof userSummarySchema>;
+export const objectIdSchema = z
+  .string()
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId format');

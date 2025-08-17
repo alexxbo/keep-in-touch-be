@@ -7,7 +7,7 @@ import {
   RefreshTokenType,
   RegisterUserType,
   ResetPasswordType,
-} from '../models/auth/auth.schemas';
+} from '../models/auth/auth.types';
 import User from '../models/user/user.model';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';

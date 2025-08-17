@@ -12,7 +12,7 @@ import {
   updatePasswordSchema,
   updateProfileSchema,
   userParamsSchema,
-} from '../../models/user/user.schemas';
+} from '../../validation/user.schemas';
 
 const router = Router();
 

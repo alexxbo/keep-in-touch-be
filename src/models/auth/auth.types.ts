@@ -1,0 +1,14 @@
+import z from 'zod/v4/classic/external.cjs';
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  refreshTokenSchema,
+  registerUserSchema,
+  resetPasswordSchema,
+} from '../../validation/auth.schemas';
+
+export type RegisterUserType = z.infer<typeof registerUserSchema>;
+export type LoginType = z.infer<typeof loginSchema>;
+export type RefreshTokenType = z.infer<typeof refreshTokenSchema>;
+export type ForgotPasswordType = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
