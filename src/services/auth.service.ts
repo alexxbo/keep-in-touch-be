@@ -112,13 +112,7 @@ export class AuthService {
   static async register(userData: RegisterUserType): Promise<AuthResult> {
     const {username, name, email, password} = userData;
 
-    // Validate required fields
-    if (!username || !name || !email || !password) {
-      throw new BaseError(
-        'Username, name, email, and password are required',
-        StatusCodes.BAD_REQUEST,
-      );
-    }
+    // Remove redundant validation - Zod schema already validates required fields
 
     // Create user through UserService
     const user = await UserService.createUser({
@@ -153,13 +147,7 @@ export class AuthService {
   static async login(credentials: LoginType): Promise<AuthResult> {
     const {identifier, password} = credentials;
 
-    // Validate required fields
-    if (!identifier || !password) {
-      throw new BaseError(
-        'Username/email and password are required',
-        StatusCodes.BAD_REQUEST,
-      );
-    }
+    // Remove redundant validation - Zod schema already validates required fields
 
     // Find user by username or email
     const user = await UserService.findByUsernameOrEmail(identifier, true);
@@ -200,9 +188,7 @@ export class AuthService {
   static async refreshToken(tokenData: RefreshTokenType): Promise<AuthTokens> {
     const {refreshToken} = tokenData;
 
-    if (!refreshToken) {
-      throw new BaseError('Refresh token is required', StatusCodes.BAD_REQUEST);
-    }
+    // Remove redundant validation - Zod schema already validates required fields
 
     // Verify refresh token
     const decoded = this.verifyToken(refreshToken);
@@ -251,9 +237,7 @@ export class AuthService {
   static async forgotPassword(data: ForgotPasswordType): Promise<void> {
     const {email} = data;
 
-    if (!email) {
-      throw new BaseError('Email is required', StatusCodes.BAD_REQUEST);
-    }
+    // Remove redundant validation - Zod schema already validates required fields
 
     // Find user by email
     const user = await UserService.findByUsernameOrEmail(email);
@@ -277,13 +261,13 @@ export class AuthService {
   static async resetPassword(data: ResetPasswordType): Promise<void> {
     const {token, newPassword} = data;
 
-    if (!token || !newPassword) {
-      throw new BaseError(
-        'Reset token and new password are required',
-        StatusCodes.BAD_REQUEST,
-      );
-    }
-
+    logger.info(
+      `Password reset requested for token: ${token} newPassword: ${newPassword}`,
+      {
+        token,
+        newPassword,
+      },
+    );
     // TODO: Implement password reset token validation and password update
     // For now, return not implemented
     throw new BaseError(
