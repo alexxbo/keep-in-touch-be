@@ -31,7 +31,8 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(response.body).toHaveProperty('message', 'Login successful');
-    expect(response.body).toHaveProperty('token');
+    expect(response.body).toHaveProperty('accessToken');
+    expect(response.body).toHaveProperty('refreshToken');
     expect(response.body).toHaveProperty('user');
     expect(response.body.user).toHaveProperty('username', userData.username);
     expect(response.body.user).toHaveProperty('email', userData.email);
@@ -46,7 +47,8 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(response.body).toHaveProperty('message', 'Login successful');
-    expect(response.body).toHaveProperty('token');
+    expect(response.body).toHaveProperty('accessToken');
+    expect(response.body).toHaveProperty('refreshToken');
     expect(response.body.user).toHaveProperty('username', userData.username);
   });
 
@@ -125,7 +127,10 @@ describe('POST /api/v1/auth/login', () => {
     });
 
     expect(response.status).toBe(StatusCodes.OK);
-    expect(response.body.token).toMatch(
+    expect(response.body.accessToken).toMatch(
+      /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/,
+    ); // JWT pattern
+    expect(response.body.refreshToken).toMatch(
       /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/,
     ); // JWT pattern
   });

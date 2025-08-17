@@ -27,8 +27,8 @@ describe('Auth Routes Integration', () => {
         .send(userData);
 
       expect(registerResponse.status).toBe(StatusCodes.CREATED);
-      expect(registerResponse.body).toHaveProperty('token');
-      const registerToken = registerResponse.body.token;
+      expect(registerResponse.body).toHaveProperty('accessToken');
+      const registerToken = registerResponse.body.accessToken;
 
       // 2. Verify user exists in database
       const user = await User.findOne({email: userData.email});
@@ -42,8 +42,8 @@ describe('Auth Routes Integration', () => {
       });
 
       expect(loginResponse.status).toBe(StatusCodes.OK);
-      expect(loginResponse.body).toHaveProperty('token');
-      const loginToken = loginResponse.body.token;
+      expect(loginResponse.body).toHaveProperty('accessToken');
+      const loginToken = loginResponse.body.accessToken;
 
       // 4. Access protected logout route
       const logoutResponse = await request(app)

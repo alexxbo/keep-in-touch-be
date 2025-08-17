@@ -15,11 +15,11 @@ describe('Users Routes', () => {
 
   describe('GET /api/v1/users/me', () => {
     it('should get current user profile successfully', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const response = await request(app)
         .get('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toHaveProperty('status', 'success');
@@ -46,33 +46,27 @@ describe('Users Routes', () => {
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
-      expect(response.body).toHaveProperty(
-        'message',
-        'Invalid JSON web token. Please try again.',
-      );
+      expect(response.body).toHaveProperty('message', 'Invalid token');
     });
 
     it('should return 401 when user no longer exists (token invalid)', async () => {
-      const {token, user} = await registerAndLogin(app);
+      const {accessToken, user} = await registerAndLogin(app);
 
       // Delete the user
       await User.findByIdAndDelete(user.id);
 
       const response = await request(app)
         .get('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
-      expect(response.body).toHaveProperty(
-        'message',
-        'Invalid token or user not found',
-      );
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
   });
 
   describe('PATCH /api/v1/users/me', () => {
     it('should update user profile successfully with both name and username', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const updateData = {
         name: 'Updated Name',
@@ -81,7 +75,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.OK);
@@ -94,7 +88,7 @@ describe('Users Routes', () => {
     });
 
     it('should update only name when provided', async () => {
-      const {token, user} = await registerAndLogin(app);
+      const {accessToken, user} = await registerAndLogin(app);
 
       const updateData = {
         name: 'Only Name Updated',
@@ -102,7 +96,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.OK);
@@ -111,7 +105,7 @@ describe('Users Routes', () => {
     });
 
     it('should update only username when provided', async () => {
-      const {token, user} = await registerAndLogin(app);
+      const {accessToken, user} = await registerAndLogin(app);
 
       const updateData = {
         username: 'onlyusername',
@@ -119,7 +113,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.OK);
@@ -131,11 +125,11 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 when no fields provided', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({});
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -146,7 +140,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 for invalid username format', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const updateData = {
         username: 'invalid username!', // Contains spaces and special characters
@@ -154,7 +148,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -165,7 +159,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 for username too short', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const updateData = {
         username: 'ab', // Too short
@@ -173,7 +167,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -184,7 +178,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 for name too long', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const updateData = {
         name: 'a'.repeat(51), // Too long
@@ -192,7 +186,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -211,7 +205,7 @@ describe('Users Routes', () => {
       });
 
       // Register and login second user
-      const {token} = await registerAndLogin(app, {
+      const {accessToken} = await registerAndLogin(app, {
         email: 'second@example.com',
         username: 'seconduser',
         name: 'Second User',
@@ -221,7 +215,7 @@ describe('Users Routes', () => {
       // Try to update second user's username to first user's username
       const response = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({username: firstUser.username});
 
       expect(response.status).toBe(StatusCodes.CONFLICT);
@@ -243,7 +237,7 @@ describe('Users Routes', () => {
 
   describe('PATCH /api/v1/users/me/password', () => {
     it('should update password successfully', async () => {
-      const {token, user} = await registerAndLogin(app);
+      const {accessToken, user} = await registerAndLogin(app);
 
       const passwordData = {
         currentPassword: 'Password123!', // Use the default password from testHelpers
@@ -252,7 +246,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(passwordData);
 
       expect(response.status).toBe(StatusCodes.OK);
@@ -272,11 +266,11 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 when current password is missing', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({newPassword: 'newPassword456'});
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -287,11 +281,11 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 when new password is missing', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({currentPassword: 'testpassword123'});
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -302,11 +296,11 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 when both passwords are missing', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({});
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -317,7 +311,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 400 for weak new password', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const passwordData = {
         currentPassword: 'testpassword123',
@@ -326,7 +320,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(passwordData);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
@@ -337,7 +331,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 401 when current password is incorrect', async () => {
-      const {token} = await registerAndLogin(app);
+      const {accessToken} = await registerAndLogin(app);
 
       const passwordData = {
         currentPassword: 'wrongpassword',
@@ -346,7 +340,7 @@ describe('Users Routes', () => {
 
       const response = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(passwordData);
 
       expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -428,11 +422,11 @@ describe('Users Routes', () => {
 
   describe('DELETE /api/v1/users/me', () => {
     it('should delete user account successfully', async () => {
-      const {token, user} = await registerAndLogin(app);
+      const {accessToken, user} = await registerAndLogin(app);
 
       const response = await request(app)
         .delete('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toHaveProperty('status', 'success');
@@ -462,10 +456,7 @@ describe('Users Routes', () => {
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
-      expect(response.body).toHaveProperty(
-        'message',
-        'Invalid JSON web token. Please try again.',
-      );
+      expect(response.body).toHaveProperty('message', 'Invalid token');
     });
 
     it('should allow the same email to be used for new registration after deletion', async () => {
@@ -477,10 +468,10 @@ describe('Users Routes', () => {
       };
 
       // Register and delete first user
-      const {token} = await registerAndLogin(app, userData);
+      const {accessToken} = await registerAndLogin(app, userData);
       await request(app)
         .delete('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
 
       // Register new user with same email
       const newUserResponse = await request(app)
@@ -499,7 +490,7 @@ describe('Users Routes', () => {
   describe('Integration scenarios', () => {
     it('should handle complete profile management flow', async () => {
       // Register user
-      const {token, user} = await registerAndLogin(app, {
+      const {accessToken, user} = await registerAndLogin(app, {
         email: 'integration@example.com',
         username: 'integrationuser',
         name: 'Integration User',
@@ -509,13 +500,13 @@ describe('Users Routes', () => {
       // Get initial profile
       const profileResponse = await request(app)
         .get('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
       expect(profileResponse.status).toBe(StatusCodes.OK);
 
       // Update profile
       const updateResponse = await request(app)
         .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({
           name: 'Updated Integration User',
           username: 'updatedintegration',
@@ -525,7 +516,7 @@ describe('Users Routes', () => {
       // Update password
       const passwordResponse = await request(app)
         .patch('/api/v1/users/me/password')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({
           currentPassword: 'originalpassword', // Use the password from registration
           newPassword: 'newintegrationpassword',
@@ -539,7 +530,7 @@ describe('Users Routes', () => {
       // Delete account
       const deleteResponse = await request(app)
         .delete('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${accessToken}`);
       expect(deleteResponse.status).toBe(StatusCodes.OK);
 
       // Verify user is completely deleted
@@ -555,7 +546,7 @@ describe('Users Routes', () => {
         name: 'User One',
       });
 
-      const {token: token2} = await registerAndLogin(app, {
+      const {accessToken: token2} = await registerAndLogin(app, {
         email: 'user2@example.com',
         username: 'user2',
         name: 'User Two',

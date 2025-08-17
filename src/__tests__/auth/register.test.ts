@@ -28,7 +28,8 @@ describe('POST /api/v1/auth/register', () => {
       'message',
       'User registered successfully',
     );
-    expect(response.body).toHaveProperty('token');
+    expect(response.body).toHaveProperty('accessToken');
+    expect(response.body).toHaveProperty('refreshToken');
     expect(response.body).toHaveProperty('user');
     expect(response.body.user).toHaveProperty(
       'username',
@@ -188,7 +189,10 @@ describe('POST /api/v1/auth/register', () => {
       .send(validUserData);
 
     expect(response.status).toBe(StatusCodes.CREATED);
-    expect(response.body.token).toMatch(
+    expect(response.body.accessToken).toMatch(
+      /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/,
+    ); // JWT pattern
+    expect(response.body.refreshToken).toMatch(
       /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/,
     ); // JWT pattern
   });

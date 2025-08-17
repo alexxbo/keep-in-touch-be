@@ -1,14 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import jwt from 'jsonwebtoken';
-import User from '../models/user/user.model';
+import {AuthService} from '../services/auth.service';
 import {BaseError} from '../utils/BaseError';
-
-interface JwtPayload {
-  userId: string;
-  iat: number;
-  exp: number;
-}
 
 export const authenticateToken = async (
   req: Request,
@@ -28,28 +21,7 @@ export const authenticateToken = async (
       );
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return next(
-        new BaseError(
-          'JWT secret is not configured',
-          StatusCodes.INTERNAL_SERVER_ERROR,
-        ),
-      );
-    }
-
-    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-    const user = await User.findById(decoded.userId).select('+password');
-
-    if (!user) {
-      return next(
-        new BaseError(
-          'Invalid token or user not found',
-          StatusCodes.UNAUTHORIZED,
-        ),
-      );
-    }
-
+    const user = await AuthService.validateAccessToken(token);
     req.user = user;
     next();
   } catch (error) {

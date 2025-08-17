@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../app';
 import {RegisterUserType} from '../models/auth/auth.types';
 import User, {IUser} from '../models/user/user.model';
-import {PublicProfileType} from '../models/user/user.types';
+import {AuthResult} from '../services';
 
 export const createTestApp = (): Express => {
   return app;
@@ -13,7 +13,7 @@ export const createTestUser = async (
   userData: Partial<RegisterUserType> = {},
 ): Promise<IUser> => {
   const defaultUser = {
-    username: 'testuser',
+    username: 'test_user',
     name: 'Test User',
     email: 'test@example.com',
     password: 'Password123!',
@@ -29,14 +29,15 @@ export const loginUser = async (
   app: Express,
   identifier: string,
   password: string,
-): Promise<{token: string; user: PublicProfileType}> => {
+): Promise<AuthResult> => {
   const response = await request(app).post('/api/v1/auth/login').send({
     identifier,
     password,
   });
 
   return {
-    token: response.body.token,
+    accessToken: response.body.accessToken,
+    refreshToken: response.body.refreshToken,
     user: response.body.user,
   };
 };
@@ -44,9 +45,9 @@ export const loginUser = async (
 export const registerAndLogin = async (
   app: Express,
   userData: Partial<RegisterUserType> = {},
-): Promise<{token: string; user: PublicProfileType}> => {
+): Promise<AuthResult> => {
   const defaultUser = {
-    username: 'testuser',
+    username: 'test_user',
     name: 'Test User',
     email: 'test@example.com',
     password: 'Password123!',
@@ -61,7 +62,8 @@ export const registerAndLogin = async (
   expect(registerResponse.status).toBe(201);
 
   return {
-    token: registerResponse.body.token,
+    accessToken: registerResponse.body.accessToken,
+    refreshToken: registerResponse.body.refreshToken,
     user: registerResponse.body.user,
   };
 };

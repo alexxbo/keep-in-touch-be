@@ -10,16 +10,13 @@ describe('POST /api/v1/auth/refresh', () => {
     app = createTestApp();
   });
 
-  it('should return 501 for refresh token functionality (not implemented)', async () => {
+  it('should return 401 for invalid refresh token', async () => {
     const response = await request(app).post('/api/v1/auth/refresh').send({
-      refreshToken: 'some-refresh-token',
+      refreshToken: 'invalid-refresh-token',
     });
 
-    expect(response.status).toBe(StatusCodes.NOT_IMPLEMENTED);
-    expect(response.body).toHaveProperty(
-      'message',
-      'Refresh token functionality not implemented yet',
-    );
+    expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    expect(response.body).toHaveProperty('message', 'Invalid token');
   });
 
   it('should return 400 when refresh token is missing', async () => {

@@ -1,6 +1,5 @@
-import {NextFunction, Request, Response} from 'express';
+import {Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import jwt from 'jsonwebtoken';
 import {
   ForgotPasswordType,
   LoginType,
@@ -8,154 +7,63 @@ import {
   RegisterUserType,
   ResetPasswordType,
 } from '../models/auth/auth.types';
-import User from '../models/user/user.model';
-import {BaseError} from '../utils/BaseError';
+import {AuthService} from '../services/auth.service';
 import {runCatching} from '../utils/runCatching';
 
-const generateToken = (userId: string): string => {
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    throw new BaseError(
-      'JWT secret is not configured',
-      StatusCodes.INTERNAL_SERVER_ERROR,
-    );
-  }
+export const register = runCatching(async (req: Request, res: Response) => {
+  const userData = req.body as RegisterUserType;
 
-  //TODO: change expiresIn to a more secure value in production
-  return jwt.sign({userId}, jwtSecret, {expiresIn: '7d'});
-};
+  const result = await AuthService.register(userData);
 
-export const register = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {username, name, email, password} = req.body as RegisterUserType;
+  res.status(StatusCodes.CREATED).json({
+    message: 'User registered successfully',
+    user: result.user,
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+  });
+});
 
-    if (!username || !name || !email || !password) {
-      return next(
-        new BaseError(
-          'Username, name, email, and password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
+export const login = runCatching(async (req: Request, res: Response) => {
+  const credentials = req.body as LoginType;
 
-    const existingUser = await User.findOne({
-      $or: [{username}, {email}],
-    });
+  const result = await AuthService.login(credentials);
 
-    if (existingUser) {
-      if (existingUser.username === username) {
-        return next(
-          new BaseError('Username already taken', StatusCodes.CONFLICT),
-        );
-      }
-      if (existingUser.email === email) {
-        return next(
-          new BaseError('Email already registered', StatusCodes.CONFLICT),
-        );
-      }
-    }
+  res.status(StatusCodes.OK).json({
+    message: 'Login successful',
+    user: result.user,
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+  });
+});
 
-    const user = new User({username, name, email, password});
-    await user.save();
+export const refreshToken = runCatching(async (req: Request, res: Response) => {
+  const tokenData = req.body as RefreshTokenType;
 
-    const token = generateToken((user._id as string).toString());
+  const result = await AuthService.refreshToken(tokenData);
 
-    const userResponse = user.getPublicProfile();
-
-    res.status(StatusCodes.CREATED).json({
-      message: 'User registered successfully',
-      user: userResponse,
-      token,
-    });
-  },
-);
-
-export const login = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // identifier can be username or email
-    const {identifier, password} = req.body as LoginType;
-
-    if (!identifier || !password) {
-      return next(
-        new BaseError(
-          'Username/email and password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
-
-    // Find user by username or email and include password for comparison
-    const user = await User.findOne({
-      $or: [{username: identifier}, {email: identifier}],
-    }).select('+password');
-
-    if (!user) {
-      return next(
-        new BaseError(
-          'Invalid credentials or account is inactive',
-          StatusCodes.UNAUTHORIZED,
-        ),
-      );
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return next(
-        new BaseError('Invalid credentials', StatusCodes.UNAUTHORIZED),
-      );
-    }
-
-    user.updateLastSeen();
-
-    const token = generateToken((user._id as string).toString());
-
-    const userResponse = user.getPublicProfile();
-
-    res.status(StatusCodes.OK).json({
-      message: 'Login successful',
-      user: userResponse,
-      token,
-    });
-  },
-);
-
-export const refreshToken = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {refreshToken} = req.body as RefreshTokenType;
-
-    if (!refreshToken) {
-      return next(
-        new BaseError('Refresh token is required', StatusCodes.BAD_REQUEST),
-      );
-    }
-
-    // TODO: Implement refresh token logic with database storage
-    // For now, just return an error
-    return next(
-      new BaseError(
-        'Refresh token functionality not implemented yet',
-        StatusCodes.NOT_IMPLEMENTED,
-      ),
-    );
-  },
-);
+  res.status(StatusCodes.OK).json({
+    message: 'Token refreshed successfully',
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+  });
+});
 
 export const logout = runCatching(async (req: Request, res: Response) => {
-  // TODO: Implement logout logic with refresh token invalidation
-  // For now, just return success
-  res.status(StatusCodes.OK).json({message: 'Logged out successfully'});
+  const userId = req.user?._id?.toString();
+
+  await AuthService.logout(userId || '');
+
+  res.status(StatusCodes.OK).json({
+    message: 'Logged out successfully',
+  });
 });
 
 export const forgotPassword = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {email} = req.body as ForgotPasswordType;
+  async (req: Request, res: Response) => {
+    const data = req.body as ForgotPasswordType;
 
-    if (!email) {
-      return next(new BaseError('Email is required', StatusCodes.BAD_REQUEST));
-    }
+    await AuthService.forgotPassword(data);
 
-    // TODO: Implement forgot password logic with email service
-    // For now, just return success
     res.status(StatusCodes.OK).json({
       message: 'Password reset instructions sent to your email',
     });
@@ -163,25 +71,13 @@ export const forgotPassword = runCatching(
 );
 
 export const resetPassword = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const {token, newPassword} = req.body as ResetPasswordType;
+  async (req: Request, res: Response) => {
+    const data = req.body as ResetPasswordType;
 
-    if (!token || !newPassword) {
-      return next(
-        new BaseError(
-          'Reset token and new password are required',
-          StatusCodes.BAD_REQUEST,
-        ),
-      );
-    }
+    await AuthService.resetPassword(data);
 
-    // TODO: Implement reset password logic with token validation
-    // For now, just return an error
-    return next(
-      new BaseError(
-        'Password reset functionality not implemented yet',
-        StatusCodes.NOT_IMPLEMENTED,
-      ),
-    );
+    res.status(StatusCodes.OK).json({
+      message: 'Password reset successfully',
+    });
   },
 );

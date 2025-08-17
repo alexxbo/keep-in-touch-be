@@ -11,11 +11,11 @@ describe('POST /api/v1/auth/logout', () => {
   });
 
   it('should logout successfully with valid token', async () => {
-    const {token} = await registerAndLogin(app);
+    const {accessToken} = await registerAndLogin(app);
 
     const response = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(response.body).toHaveProperty('message', 'Logged out successfully');
@@ -38,11 +38,11 @@ describe('POST /api/v1/auth/logout', () => {
   });
 
   it('should return 401 when malformed Authorization header', async () => {
-    const {token} = await registerAndLogin(app);
+    const {accessToken} = await registerAndLogin(app);
 
     const response = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Authorization', token); // Missing 'Bearer ' prefix
+      .set('Authorization', accessToken); // Missing 'Bearer ' prefix
 
     expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
     expect(response.body).toHaveProperty('message');
