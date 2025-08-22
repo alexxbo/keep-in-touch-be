@@ -23,5 +23,7 @@ beforeEach(async () => {
 });
 
 // Mock environment variables for testing
-process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
+process.env.ACCESS_TOKEN_SECRET = 'test-jwt-secret-key-for-testing-only';
+process.env.REFRESH_TOKEN_SECRET =
+  'test-jwt-refresh-secret-key-for-testing-only';
 process.env.NODE_ENV = 'test';

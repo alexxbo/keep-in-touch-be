@@ -55,11 +55,11 @@ describe('Auth Routes Integration', () => {
       // 5. Verify tokens are valid JWTs with correct payload
       const decodedRegisterToken = jwt.verify(
         registerToken,
-        process.env.JWT_SECRET!,
+        process.env.ACCESS_TOKEN_SECRET!,
       ) as {userId: string};
       const decodedLoginToken = jwt.verify(
         loginToken,
-        process.env.JWT_SECRET!,
+        process.env.ACCESS_TOKEN_SECRET!,
       ) as {userId: string};
 
       expect(decodedRegisterToken.userId).toBe(user?._id?.toString());

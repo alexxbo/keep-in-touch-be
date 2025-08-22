@@ -14,12 +14,15 @@ export const registerUserSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  identifier: z.string().trim(), // To handle both username or email
-  password: z.string().min(1, 'Password cannot be empty'),
+  identifier: z
+    .string()
+    .trim()
+    .nonempty('Username/email and password are required'), // To handle both username or email
+  password: z.string().nonempty('Username/email and password are required'),
 });
 
 export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
+  refreshToken: z.string().nonempty('Refresh token is required'),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -27,6 +30,11 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
+  token: z.string().nonempty('Reset token is required'),
   newPassword: passwordSchema,
+});
+
+export const logoutSchema = z.object({
+  refreshToken: z.string().optional(),
+  logoutAllDevices: z.boolean().optional(),
 });

@@ -2,6 +2,7 @@ import z from 'zod/v4/classic/external.cjs';
 import {
   forgotPasswordSchema,
   loginSchema,
+  logoutSchema,
   refreshTokenSchema,
   registerUserSchema,
   resetPasswordSchema,
@@ -12,3 +13,4 @@ export type LoginType = z.infer<typeof loginSchema>;
 export type RefreshTokenType = z.infer<typeof refreshTokenSchema>;
 export type ForgotPasswordType = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
+export type LogoutType = z.infer<typeof logoutSchema>;

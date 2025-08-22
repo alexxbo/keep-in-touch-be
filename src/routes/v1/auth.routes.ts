@@ -1,17 +1,20 @@
 import {Router} from 'express';
 import {
   forgotPassword,
+  getSessions,
   login,
   logout,
   refreshToken,
   register,
   resetPassword,
+  revokeSession,
 } from '../../controllers/auth.controller';
 import {authenticateToken} from '../../middleware/auth';
 import {validateRequest} from '../../middleware/validation.middleware';
 import {
   forgotPasswordSchema,
   loginSchema,
+  logoutSchema,
   refreshTokenSchema,
   registerUserSchema,
   resetPasswordSchema,
@@ -29,7 +32,12 @@ router.post(
   refreshToken,
 );
 
-router.post('/logout', authenticateToken, logout);
+router.post(
+  '/logout',
+  authenticateToken,
+  validateRequest({body: logoutSchema}),
+  logout,
+);
 
 router.post(
   '/forgot-password',
@@ -42,5 +50,10 @@ router.post(
   validateRequest({body: resetPasswordSchema}),
   resetPassword,
 );
+
+// Session management routes
+router.get('/sessions', authenticateToken, getSessions);
+
+router.delete('/sessions/:tokenId', authenticateToken, revokeSession);
 
 export {router as authRoutes};

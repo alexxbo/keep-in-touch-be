@@ -1,6 +1,7 @@
 import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import {Types} from 'mongoose';
+import type {StringValue} from 'ms';
 import {
   ForgotPasswordType,
   LoginType,
@@ -15,6 +16,7 @@ import {
 } from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
 import {logger} from '../utils/logger';
+import {RefreshTokenService} from './refreshToken.service';
 import {UserService} from './user.service';
 
 export interface AuthTokens {
@@ -26,93 +28,25 @@ export interface AuthResult extends AuthTokens {
   user: PublicProfileType;
 }
 
+export interface Options {
+  deviceInfo?: string;
+}
+
 export class AuthService {
-  private static readonly ACCESS_TOKEN_EXPIRY = '15m';
-  private static readonly REFRESH_TOKEN_EXPIRY = '7d';
-
-  /**
-   * Generate JWT access token
-   */
-  private static generateAccessToken(userId: string): string {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    return jwt.sign({userId, type: 'access'}, jwtSecret, {
-      expiresIn: this.ACCESS_TOKEN_EXPIRY,
-    });
-  }
-
-  /**
-   * Generate JWT refresh token
-   */
-  private static generateRefreshToken(userId: string): string {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    return jwt.sign({userId, type: 'refresh'}, jwtSecret, {
-      expiresIn: this.REFRESH_TOKEN_EXPIRY,
-    });
-  }
-
-  /**
-   * Generate both access and refresh tokens
-   */
-  private static generateTokens(userId: string): AuthTokens {
-    return {
-      accessToken: this.generateAccessToken(userId),
-      refreshToken: this.generateRefreshToken(userId),
-    };
-  }
-
-  /**
-   * Verify and decode JWT token
-   */
-  static verifyToken(token: string): {userId: string; type: string} {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    try {
-      const decoded = jwt.verify(token, jwtSecret) as {
-        userId: string;
-        type: string;
-      };
-      return decoded;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new BaseError('Token has expired', StatusCodes.UNAUTHORIZED);
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new BaseError('Invalid token', StatusCodes.UNAUTHORIZED);
-      }
-      throw new BaseError(
-        'Token verification failed',
-        StatusCodes.UNAUTHORIZED,
-      );
-    }
-  }
+  private static readonly ACCESS_TOKEN_EXPIRY = (process.env
+    .ACCESS_TOKEN_EXPIRES_IN || '15m') as StringValue;
+  private static readonly REFRESH_TOKEN_EXPIRY = (process.env
+    .REFRESH_TOKEN_EXPIRES_IN || '7d') as StringValue;
 
   /**
    * Register a new user
    */
-  static async register(userData: RegisterUserType): Promise<AuthResult> {
+  static async register(
+    userData: RegisterUserType,
+    options?: Options,
+  ): Promise<AuthResult> {
     const {username, name, email, password} = userData;
-
-    // Remove redundant validation - Zod schema already validates required fields
+    const {deviceInfo} = options || {};
 
     // Create user through UserService
     const user = await UserService.createUser({
@@ -122,8 +56,19 @@ export class AuthService {
       password,
     });
 
-    // Generate tokens
-    const tokens = this.generateTokens((user._id as Types.ObjectId).toString());
+    // Generate JWT tokens
+    const jwtTokens = this.generateTokens(
+      (user._id as Types.ObjectId).toString(),
+    );
+
+    // Store refresh token in database for tracking
+    await RefreshTokenService.storeRefreshToken(
+      {
+        userId: user._id as Types.ObjectId,
+        deviceInfo,
+      },
+      jwtTokens.refreshToken,
+    );
 
     // Update last seen
     await UserService.updateLastSeen(user._id as Types.ObjectId);
@@ -132,24 +77,26 @@ export class AuthService {
       userId: user._id,
       username: user.username,
       email: user.email,
+      deviceInfo,
     });
 
     return {
       user: user.getPublicProfile(),
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken: jwtTokens.accessToken,
+      refreshToken: jwtTokens.refreshToken,
     };
   }
 
   /**
    * Login user with credentials
    */
-  static async login(credentials: LoginType): Promise<AuthResult> {
+  static async login(
+    credentials: LoginType,
+    options?: Options,
+  ): Promise<AuthResult> {
     const {identifier, password} = credentials;
+    const {deviceInfo} = options || {};
 
-    // Remove redundant validation - Zod schema already validates required fields
-
-    // Find user by username or email
     const user = await UserService.findByUsernameOrEmail(identifier, true);
     if (!user) {
       throw new BaseError(
@@ -158,77 +105,125 @@ export class AuthService {
       );
     }
 
-    // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       throw new BaseError('Invalid credentials', StatusCodes.UNAUTHORIZED);
     }
 
-    // Generate tokens
-    const tokens = this.generateTokens((user._id as Types.ObjectId).toString());
+    const jwtTokens = this.generateTokens(
+      (user._id as Types.ObjectId).toString(),
+    );
 
-    // Update last seen
+    await RefreshTokenService.storeRefreshToken(
+      {
+        userId: user._id as Types.ObjectId,
+        deviceInfo,
+      },
+      jwtTokens.refreshToken,
+    );
+
     await UserService.updateLastSeen(user._id as Types.ObjectId);
 
     logger.info(`User logged in: ${user.username}`, {
       userId: user._id,
       username: user.username,
+      deviceInfo,
     });
 
     return {
       user: user.getPublicProfile(),
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken: jwtTokens.accessToken,
+      refreshToken: jwtTokens.refreshToken,
     };
   }
 
   /**
    * Refresh access token using refresh token
    */
-  static async refreshToken(tokenData: RefreshTokenType): Promise<AuthTokens> {
+  static async refreshToken(
+    tokenData: RefreshTokenType,
+    options?: Options,
+  ): Promise<AuthTokens> {
     const {refreshToken} = tokenData;
+    const {deviceInfo} = options || {};
 
-    // Remove redundant validation - Zod schema already validates required fields
-
-    // Verify refresh token
-    const decoded = this.verifyToken(refreshToken);
-
+    const decoded = this.verifyToken(refreshToken, 'refresh');
     if (decoded.type !== 'refresh') {
       throw new BaseError('Invalid token type', StatusCodes.UNAUTHORIZED);
     }
 
-    // Check if user still exists
-    const userExists = await UserService.userExists(decoded.userId);
+    const {userId, tokenDocument} =
+      await RefreshTokenService.validateRefreshToken(refreshToken);
+
+    const userExists = await UserService.userExists(userId);
     if (!userExists) {
       throw new BaseError('User not found', StatusCodes.UNAUTHORIZED);
     }
 
-    // Generate new tokens
-    const tokens = this.generateTokens(decoded.userId);
+    const newAccessToken = this.generateAccessToken(userId.toString());
 
-    // Update last seen
-    await UserService.updateLastSeen(decoded.userId);
+    const newJwtTokens = this.generateTokens(userId.toString());
 
-    logger.info(`Token refreshed for user: ${decoded.userId}`, {
-      userId: decoded.userId,
+    await RefreshTokenService.storeRefreshToken(
+      {
+        userId,
+        deviceInfo: deviceInfo || tokenDocument.deviceInfo,
+      },
+      newJwtTokens.refreshToken,
+    );
+
+    // Revoke the old refresh token
+    await tokenDocument.revoke();
+
+    await UserService.updateLastSeen(userId);
+
+    logger.info(`Token refreshed for user: ${userId.toString()}`, {
+      userId: userId.toString(),
+      oldTokenId: tokenDocument._id.toString(),
+      deviceInfo: deviceInfo || tokenDocument.deviceInfo,
     });
 
     return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken: newAccessToken,
+      refreshToken: newJwtTokens.refreshToken,
     };
   }
 
   /**
    * Logout user (invalidate refresh token)
    */
-  static async logout(userId: string): Promise<void> {
-    // TODO: Implement refresh token blacklist/invalidation
-    // For now, we'll rely on client-side token removal
-
-    logger.info(`User logged out: ${userId}`, {
-      userId,
-    });
+  static async logout(
+    userId: string,
+    refreshToken?: string,
+    logoutAllDevices = false,
+  ): Promise<void> {
+    try {
+      if (logoutAllDevices) {
+        // Revoke all refresh tokens for the user
+        const revokedCount =
+          await RefreshTokenService.revokeAllUserTokens(userId);
+        logger.info(`User logged out from all devices: ${userId}`, {
+          userId,
+          revokedTokens: revokedCount,
+        });
+      } else if (refreshToken) {
+        // Revoke specific refresh token
+        await RefreshTokenService.revokeRefreshToken(refreshToken);
+        logger.info(`User logged out: ${userId}`, {
+          userId,
+        });
+      } else {
+        logger.info(`User logout initiated without token: ${userId}`, {
+          userId,
+        });
+      }
+    } catch (error) {
+      logger.warn('Error during logout', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      // Don't throw error for logout - always succeed
+    }
   }
 
   /**
@@ -236,8 +231,6 @@ export class AuthService {
    */
   static async forgotPassword(data: ForgotPasswordType): Promise<void> {
     const {email} = data;
-
-    // Remove redundant validation - Zod schema already validates required fields
 
     // Find user by email
     const user = await UserService.findByUsernameOrEmail(email);
@@ -280,7 +273,7 @@ export class AuthService {
    * Validate access token and return user
    */
   static async validateAccessToken(token: string): Promise<IUser> {
-    const decoded = this.verifyToken(token);
+    const decoded = this.verifyToken(token, 'access');
 
     if (decoded.type !== 'access') {
       throw new BaseError('Invalid token type', StatusCodes.UNAUTHORIZED);
@@ -317,6 +310,68 @@ export class AuthService {
   }
 
   /**
+   * Get user's active sessions
+   */
+  static async getUserSessions(userId: string): Promise<
+    Array<{
+      tokenId: string;
+      deviceInfo?: string;
+      createdAt: Date;
+      expiresAt: Date;
+    }>
+  > {
+    return UserService.getUserActiveSessions(userId);
+  }
+
+  /**
+   * Revoke a specific session
+   */
+  static async revokeSession(
+    userId: string,
+    tokenId: string,
+  ): Promise<{success: boolean; message: string}> {
+    try {
+      logger.info(`Session revocation requested: ${userId}`, {
+        userId,
+        tokenId,
+      });
+      const result = await UserService.revokeUserTokens(
+        userId,
+        false,
+        new Types.ObjectId(tokenId),
+      );
+
+      if (result === 0) {
+        logger.warn(`Session not found for revocation: ${userId}`, {
+          userId,
+          tokenId,
+        });
+
+        return {
+          success: false,
+          message: 'Session not found',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Session revoked successfully',
+      };
+    } catch (error) {
+      logger.error('Failed to revoke session', {
+        userId,
+        tokenId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      return {
+        success: false,
+        message: 'Failed to revoke session',
+      };
+    }
+  }
+
+  /**
    * Update password for authenticated user
    */
   static async updatePassword(
@@ -334,5 +389,89 @@ export class AuthService {
     });
 
     return {message: 'Password updated successfully'};
+  }
+
+  /**
+   * Verify and decode JWT token
+   */
+  private static verifyToken(
+    token: string,
+    type: 'access' | 'refresh',
+  ): {userId: string; type: string} {
+    const jwtSecret =
+      type === 'access'
+        ? process.env.ACCESS_TOKEN_SECRET
+        : process.env.REFRESH_TOKEN_SECRET;
+    if (!jwtSecret) {
+      throw new BaseError(
+        'JWT secret is not configured',
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as {
+        userId: string;
+        type: string;
+      };
+      return decoded;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new BaseError('Token has expired', StatusCodes.UNAUTHORIZED);
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new BaseError('Invalid token', StatusCodes.UNAUTHORIZED);
+      }
+      throw new BaseError(
+        'Token verification failed',
+        StatusCodes.UNAUTHORIZED,
+      );
+    }
+  }
+
+  /**
+   * Generate JWT access token
+   */
+  private static generateAccessToken(userId: string): string {
+    const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
+    if (!jwtSecret) {
+      throw new BaseError(
+        'JWT secret is not configured',
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const payload = {userId, type: 'access'};
+    const options = {expiresIn: AuthService.ACCESS_TOKEN_EXPIRY};
+
+    return jwt.sign(payload, jwtSecret, options);
+  }
+
+  /**
+   * Generate JWT refresh token
+   */
+  private static generateRefreshToken(userId: string): string {
+    const jwtSecret = process.env.REFRESH_TOKEN_SECRET;
+    if (!jwtSecret) {
+      throw new BaseError(
+        'JWT secret is not configured',
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const payload = {userId, type: 'refresh'};
+    const options = {expiresIn: AuthService.REFRESH_TOKEN_EXPIRY};
+
+    return jwt.sign(payload, jwtSecret, options);
+  }
+
+  /**
+   * Generate both access and refresh tokens
+   */
+  private static generateTokens(userId: string): AuthTokens {
+    return {
+      accessToken: AuthService.generateAccessToken(userId),
+      refreshToken: AuthService.generateRefreshToken(userId),
+    };
   }
 }

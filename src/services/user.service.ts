@@ -9,6 +9,7 @@ import {
 } from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
 import {logger} from '../utils/logger';
+import {RefreshTokenService} from './refreshToken.service';
 
 export class UserService {
   /**
@@ -276,6 +277,76 @@ export class UserService {
     }
 
     return query.exec();
+  }
+
+  /**
+   * Revoke user refresh tokens
+   */
+  static async revokeUserTokens(
+    userId: string | Types.ObjectId,
+    revokeAll = false,
+    currentTokenId?: Types.ObjectId,
+  ): Promise<number> {
+    try {
+      const userObjectId =
+        typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+
+      let revokedCount: number;
+
+      if (revokeAll) {
+        revokedCount =
+          await RefreshTokenService.revokeAllUserTokens(userObjectId);
+      } else if (currentTokenId) {
+        revokedCount = await RefreshTokenService.revokeOtherUserTokens(
+          userObjectId,
+          currentTokenId,
+        );
+      } else {
+        revokedCount = 0;
+      }
+
+      logger.info('User tokens revoked', {
+        userId: userObjectId.toString(),
+        revokedCount,
+        revokeAll,
+      });
+
+      return revokedCount;
+    } catch (error) {
+      logger.error('Failed to revoke user tokens', {
+        userId: userId.toString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw new BaseError(
+        'Failed to revoke authentication tokens',
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Get user's active devices/sessions
+   */
+  static async getUserActiveSessions(userId: string | Types.ObjectId): Promise<
+    Array<{
+      tokenId: string;
+      deviceInfo?: string;
+      createdAt: Date;
+      expiresAt: Date;
+    }>
+  > {
+    const userObjectId =
+      typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+
+    const activeTokens =
+      await RefreshTokenService.getUserActiveTokens(userObjectId);
+
+    return activeTokens.map(token => ({
+      tokenId: token._id.toString(),
+      deviceInfo: token.deviceInfo,
+      createdAt: token.createdAt,
+      expiresAt: token.expiresAt,
+    }));
   }
 
   /**

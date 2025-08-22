@@ -3,6 +3,7 @@ import {StatusCodes} from 'http-status-codes';
 import {
   ForgotPasswordType,
   LoginType,
+  LogoutType,
   RefreshTokenType,
   RegisterUserType,
   ResetPasswordType,
@@ -12,8 +13,9 @@ import {runCatching} from '../utils/runCatching';
 
 export const register = runCatching(async (req: Request, res: Response) => {
   const userData = req.body as RegisterUserType;
+  const deviceInfo = req.headers['user-agent'] || undefined;
 
-  const result = await AuthService.register(userData);
+  const result = await AuthService.register(userData, {deviceInfo});
 
   res.status(StatusCodes.CREATED).json({
     message: 'User registered successfully',
@@ -25,8 +27,9 @@ export const register = runCatching(async (req: Request, res: Response) => {
 
 export const login = runCatching(async (req: Request, res: Response) => {
   const credentials = req.body as LoginType;
+  const deviceInfo = req.headers['user-agent'] || undefined;
 
-  const result = await AuthService.login(credentials);
+  const result = await AuthService.login(credentials, {deviceInfo});
 
   res.status(StatusCodes.OK).json({
     message: 'Login successful',
@@ -38,8 +41,9 @@ export const login = runCatching(async (req: Request, res: Response) => {
 
 export const refreshToken = runCatching(async (req: Request, res: Response) => {
   const tokenData = req.body as RefreshTokenType;
+  const deviceInfo = req.headers['user-agent'] || undefined;
 
-  const result = await AuthService.refreshToken(tokenData);
+  const result = await AuthService.refreshToken(tokenData, {deviceInfo});
 
   res.status(StatusCodes.OK).json({
     message: 'Token refreshed successfully',
@@ -50,11 +54,24 @@ export const refreshToken = runCatching(async (req: Request, res: Response) => {
 
 export const logout = runCatching(async (req: Request, res: Response) => {
   const userId = req.user?._id?.toString();
+  const body = req.body as LogoutType;
+  const refreshToken =
+    body.refreshToken || (req.headers['x-refresh-token'] as string | undefined);
+  const logoutAllDevices = body.logoutAllDevices === true;
 
-  await AuthService.logout(userId || '');
+  if (!userId) {
+    res.status(StatusCodes.UNAUTHORIZED).json({
+      message: 'User not authenticated',
+    });
+    return;
+  }
+
+  await AuthService.logout(userId, refreshToken, logoutAllDevices);
 
   res.status(StatusCodes.OK).json({
-    message: 'Logged out successfully',
+    message: logoutAllDevices
+      ? 'Logged out from all devices successfully'
+      : 'Logged out successfully',
   });
 });
 
@@ -78,6 +95,45 @@ export const resetPassword = runCatching(
 
     res.status(StatusCodes.OK).json({
       message: 'Password reset successfully',
+    });
+  },
+);
+
+export const getSessions = runCatching(async (req: Request, res: Response) => {
+  const userId = req.user?._id?.toString();
+
+  if (!userId) {
+    res.status(StatusCodes.UNAUTHORIZED).json({
+      message: 'User not authenticated',
+    });
+    return;
+  }
+
+  const sessions = await AuthService.getUserSessions(userId);
+
+  res.status(StatusCodes.OK).json({
+    message: 'User sessions retrieved successfully',
+    sessions,
+  });
+});
+
+export const revokeSession = runCatching(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id?.toString();
+    const {tokenId} = req.params;
+
+    if (!userId) {
+      res.status(StatusCodes.UNAUTHORIZED).json({
+        message: 'User not authenticated',
+      });
+      return;
+    }
+
+    const result = await AuthService.revokeSession(userId, tokenId);
+
+    res.status(StatusCodes.OK).json({
+      message: result.message,
+      success: result.success,
     });
   },
 );

@@ -12,7 +12,7 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   const userData = {
-    username: 'testuser',
+    username: 'test-user',
     name: 'Test User',
     email: 'test@example.com',
     password: 'Password123!',
@@ -152,8 +152,7 @@ describe('POST /api/v1/auth/login', () => {
     });
 
     expect(response.status).toBe(StatusCodes.BAD_REQUEST);
-    expect(response.body).toHaveProperty(
-      'message',
+    expect(response.body.message).toContain(
       'Username/email and password are required',
     );
   });
