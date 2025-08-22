@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {UpdatePasswordType, UserParamsType} from '../models/user/user.types';
+import {UserParamsType} from '../models/user/user.types';
 import {UserService} from '../services/user.service';
 import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
@@ -41,28 +41,6 @@ export const updateProfile = runCatching(
     res.status(StatusCodes.OK).json({
       status: 'success',
       data: {user},
-    });
-  },
-);
-
-export const updatePassword = runCatching(
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return next(
-        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
-      );
-    }
-
-    const {currentPassword, newPassword} = req.body as UpdatePasswordType;
-
-    await UserService.updatePassword(req.user._id, {
-      currentPassword,
-      newPassword,
-    });
-
-    res.status(StatusCodes.OK).json({
-      status: 'success',
-      message: 'Password updated successfully',
     });
   },
 );

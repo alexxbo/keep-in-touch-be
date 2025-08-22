@@ -3,15 +3,9 @@ import {
   emailSchema,
   nameSchema,
   objectIdSchema,
-  passwordSchema,
   roleSchema,
   usernameSchema,
 } from '../models/user/user.schemas';
-
-export const updatePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: passwordSchema,
-});
 
 export const userParamsSchema = z.object({
   id: objectIdSchema,

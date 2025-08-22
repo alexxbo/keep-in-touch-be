@@ -4,7 +4,6 @@ import User, {IUser} from '../models/user/user.model';
 import {
   CompleteProfileType,
   PublicProfileType,
-  UpdatePasswordType,
   UserSummaryType,
 } from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
@@ -169,38 +168,6 @@ export class UserService {
   }
 
   /**
-   * Update user's password
-   */
-  static async updatePassword(
-    userId: string | Types.ObjectId,
-    passwordData: UpdatePasswordType,
-  ): Promise<void> {
-    const {currentPassword, newPassword} = passwordData;
-
-    const user = await this.findById(userId, true);
-    if (!user) {
-      throw new BaseError('User not found', StatusCodes.NOT_FOUND);
-    }
-
-    // Verify current password
-    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
-    if (!isCurrentPasswordValid) {
-      throw new BaseError(
-        'Current password is incorrect',
-        StatusCodes.UNAUTHORIZED,
-      );
-    }
-
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    logger.info(`Password updated for user: ${user.username}`, {
-      userId: user._id,
-    });
-  }
-
-  /**
    * Update user's last seen timestamp
    */
   static async updateLastSeen(userId: string | Types.ObjectId): Promise<void> {
@@ -223,6 +190,56 @@ export class UserService {
     }
 
     return user.comparePassword(password);
+  }
+
+  /**
+   * Update user's password
+   */
+  static async updatePassword(
+    userId: string | Types.ObjectId,
+    passwordData: {
+      newPassword: string;
+      currentPassword?: string;
+    },
+  ): Promise<void> {
+    const user = await this.findById(userId, true);
+    if (!user) {
+      throw new BaseError('User not found', StatusCodes.NOT_FOUND);
+    }
+
+    // Check if we should skip current password verification (for password reset)
+    if (passwordData.currentPassword === undefined) {
+      // Direct password update for password reset
+      user.password = passwordData.newPassword;
+      await user.save();
+
+      logger.info(`Password reset for user: ${user.username}`, {
+        userId: user._id,
+        username: user.username,
+      });
+    } else {
+      // Normal password update with current password verification
+      const {currentPassword, newPassword} = passwordData;
+
+      // Verify current password
+      const isCurrentPasswordValid =
+        await user.comparePassword(currentPassword);
+      if (!isCurrentPasswordValid) {
+        throw new BaseError(
+          'Current password is incorrect',
+          StatusCodes.UNAUTHORIZED,
+        );
+      }
+
+      // Update password
+      user.password = newPassword;
+      await user.save();
+
+      logger.info(`Password updated for user: ${user.username}`, {
+        userId: user._id,
+        username: user.username,
+      });
+    }
   }
 
   /**

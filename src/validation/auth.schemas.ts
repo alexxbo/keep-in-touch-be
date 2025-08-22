@@ -34,6 +34,11 @@ export const resetPasswordSchema = z.object({
   newPassword: passwordSchema,
 });
 
+export const updatePasswordSchema = z.object({
+  currentPassword: z.string().nonempty('Current password is required'),
+  newPassword: passwordSchema,
+});
+
 export const logoutSchema = z.object({
   refreshToken: z.string().optional(),
   logoutAllDevices: z.boolean().optional(),

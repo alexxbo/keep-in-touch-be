@@ -1,4 +1,4 @@
-import {Request, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import {
   ForgotPasswordType,
@@ -7,8 +7,10 @@ import {
   RefreshTokenType,
   RegisterUserType,
   ResetPasswordType,
+  UpdatePasswordType,
 } from '../models/auth/auth.types';
 import {AuthService} from '../services/auth.service';
+import {BaseError} from '../utils/BaseError';
 import {runCatching} from '../utils/runCatching';
 
 export const register = runCatching(async (req: Request, res: Response) => {
@@ -52,29 +54,6 @@ export const refreshToken = runCatching(async (req: Request, res: Response) => {
   });
 });
 
-export const logout = runCatching(async (req: Request, res: Response) => {
-  const userId = req.user?._id?.toString();
-  const body = req.body as LogoutType;
-  const refreshToken =
-    body.refreshToken || (req.headers['x-refresh-token'] as string | undefined);
-  const logoutAllDevices = body.logoutAllDevices === true;
-
-  if (!userId) {
-    res.status(StatusCodes.UNAUTHORIZED).json({
-      message: 'User not authenticated',
-    });
-    return;
-  }
-
-  await AuthService.logout(userId, refreshToken, logoutAllDevices);
-
-  res.status(StatusCodes.OK).json({
-    message: logoutAllDevices
-      ? 'Logged out from all devices successfully'
-      : 'Logged out successfully',
-  });
-});
-
 export const forgotPassword = runCatching(
   async (req: Request, res: Response) => {
     const data = req.body as ForgotPasswordType;
@@ -98,6 +77,52 @@ export const resetPassword = runCatching(
     });
   },
 );
+
+export const updatePassword = runCatching(
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(
+        new BaseError('Authentication required', StatusCodes.UNAUTHORIZED),
+      );
+    }
+
+    const {currentPassword, newPassword} = req.body as UpdatePasswordType;
+
+    await AuthService.updatePassword(
+      req.user._id,
+      currentPassword,
+      newPassword,
+    );
+
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'Password updated successfully',
+    });
+  },
+);
+
+export const logout = runCatching(async (req: Request, res: Response) => {
+  const userId = req.user?._id?.toString();
+  const body = req.body as LogoutType;
+  const refreshToken =
+    body.refreshToken || (req.headers['x-refresh-token'] as string | undefined);
+  const logoutAllDevices = body.logoutAllDevices === true;
+
+  if (!userId) {
+    res.status(StatusCodes.UNAUTHORIZED).json({
+      message: 'User not authenticated',
+    });
+    return;
+  }
+
+  await AuthService.logout(userId, refreshToken, logoutAllDevices);
+
+  res.status(StatusCodes.OK).json({
+    message: logoutAllDevices
+      ? 'Logged out from all devices successfully'
+      : 'Logged out successfully',
+  });
+});
 
 export const getSessions = runCatching(async (req: Request, res: Response) => {
   const userId = req.user?._id?.toString();

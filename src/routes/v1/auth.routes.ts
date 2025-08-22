@@ -8,6 +8,7 @@ import {
   register,
   resetPassword,
   revokeSession,
+  updatePassword,
 } from '../../controllers/auth.controller';
 import {authenticateToken} from '../../middleware/auth';
 import {validateRequest} from '../../middleware/validation.middleware';
@@ -18,6 +19,7 @@ import {
   refreshTokenSchema,
   registerUserSchema,
   resetPasswordSchema,
+  updatePasswordSchema,
 } from '../../validation/auth.schemas';
 
 const router = Router();
@@ -49,6 +51,13 @@ router.post(
   '/reset-password',
   validateRequest({body: resetPasswordSchema}),
   resetPassword,
+);
+
+router.patch(
+  '/update-password',
+  authenticateToken,
+  validateRequest({body: updatePasswordSchema}),
+  updatePassword,
 );
 
 // Session management routes

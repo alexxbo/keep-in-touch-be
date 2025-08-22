@@ -16,6 +16,7 @@ import {
 } from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
 import {logger} from '../utils/logger';
+import {PasswordResetTokenService} from './passwordResetToken.service';
 import {RefreshTokenService} from './refreshToken.service';
 import {UserService} from './user.service';
 
@@ -237,11 +238,17 @@ export class AuthService {
 
     // Always return success for security (don't reveal if email exists)
     if (user) {
-      // TODO: Generate password reset token and send email
-      // For now, just log the attempt
-      logger.info(`Password reset requested for: ${email}`, {
+      // Generate password reset token
+      const {token} = await PasswordResetTokenService.createPasswordResetToken({
+        userId: user._id as Types.ObjectId,
+      });
+
+      // TODO: Send email with reset token
+      // For now, just log the token (remove this in production)
+      logger.info(`Password reset token generated for: ${email}`, {
         userId: user._id,
         email: user.email,
+        resetToken: process.env.NODE_ENV === 'development' ? token : undefined,
       });
     } else {
       logger.warn(`Password reset requested for non-existent email: ${email}`);
@@ -254,19 +261,23 @@ export class AuthService {
   static async resetPassword(data: ResetPasswordType): Promise<void> {
     const {token, newPassword} = data;
 
-    logger.info(
-      `Password reset requested for token: ${token} newPassword: ${newPassword}`,
-      {
-        token,
-        newPassword,
-      },
-    );
-    // TODO: Implement password reset token validation and password update
-    // For now, return not implemented
-    throw new BaseError(
-      'Password reset functionality not implemented yet',
-      StatusCodes.NOT_IMPLEMENTED,
-    );
+    const {userId, tokenDocument} =
+      await PasswordResetTokenService.validatePasswordResetToken(token);
+
+    await UserService.updatePassword(userId, {
+      currentPassword: undefined,
+      newPassword: newPassword,
+    });
+
+    await PasswordResetTokenService.markTokenAsUsed(tokenDocument);
+
+    // Revoke all refresh tokens for security
+    await RefreshTokenService.revokeAllUserTokens(userId);
+
+    logger.info(`Password reset completed for user: ${userId.toString()}`, {
+      userId: userId.toString(),
+      tokenId: tokenDocument._id.toString(),
+    });
   }
 
   /**
@@ -378,17 +389,11 @@ export class AuthService {
     userId: string | Types.ObjectId,
     currentPassword: string,
     newPassword: string,
-  ): Promise<{message: string}> {
+  ): Promise<void> {
     await UserService.updatePassword(userId, {
-      currentPassword,
-      newPassword,
+      newPassword: newPassword,
+      currentPassword: currentPassword,
     });
-
-    logger.info(`Password updated via auth service: ${userId}`, {
-      userId,
-    });
-
-    return {message: 'Password updated successfully'};
   }
 
   /**

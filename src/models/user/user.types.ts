@@ -2,7 +2,6 @@ import z from 'zod';
 import {
   completeProfileSchema,
   publicProfileSchema,
-  updatePasswordSchema,
   updateProfileSchema,
   userParamsSchema,
   userSummarySchema,
@@ -13,4 +12,3 @@ export type CompleteProfileType = z.infer<typeof completeProfileSchema>;
 export type PublicProfileType = z.infer<typeof publicProfileSchema>;
 export type UpdateProfileType = z.infer<typeof updateProfileSchema>;
 export type UserParamsType = z.infer<typeof userParamsSchema>;
-export type UpdatePasswordType = z.infer<typeof updatePasswordSchema>;
