@@ -469,7 +469,12 @@ export class AuthService {
       );
     }
 
-    const payload = {userId, type: 'access'};
+    const payload = {
+      userId,
+      type: 'access',
+      iat: Math.floor(Date.now() / 1000), // Ensure uniqueness with explicit issued-at timestamp
+      jti: `${Date.now()}-${Math.random().toString(36).substring(2)}`, // Unique JWT ID
+    };
     const options = {expiresIn: AuthService.ACCESS_TOKEN_EXPIRY};
 
     return jwt.sign(payload, jwtSecret, options);
@@ -487,7 +492,12 @@ export class AuthService {
       );
     }
 
-    const payload = {userId, type: 'refresh'};
+    const payload = {
+      userId,
+      type: 'refresh',
+      iat: Math.floor(Date.now() / 1000), // Ensure uniqueness with explicit issued-at timestamp
+      jti: `${Date.now()}-${Math.random().toString(36).substring(2)}`, // Unique JWT ID
+    };
     const options = {expiresIn: AuthService.REFRESH_TOKEN_EXPIRY};
 
     return jwt.sign(payload, jwtSecret, options);

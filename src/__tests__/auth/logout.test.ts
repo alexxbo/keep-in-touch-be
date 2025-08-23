@@ -15,7 +15,8 @@ describe('POST /api/v1/auth/logout', () => {
 
     const response = await request(app)
       .post('/api/v1/auth/logout')
-      .set('Authorization', `Bearer ${accessToken}`);
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({});
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(response.body).toHaveProperty('message', 'Logged out successfully');
