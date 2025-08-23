@@ -15,6 +15,7 @@ import {
   PublicProfileType,
 } from '../models/user/user.types';
 import {BaseError} from '../utils/BaseError';
+import {Email} from '../utils/email';
 import {logger} from '../utils/logger';
 import {PasswordResetTokenService} from './passwordResetToken.service';
 import {RefreshTokenService} from './refreshToken.service';
@@ -243,13 +244,35 @@ export class AuthService {
         userId: user._id as Types.ObjectId,
       });
 
-      // TODO: Send email with reset token
-      // For now, just log the token (remove this in production)
-      logger.info(`Password reset token generated for: ${email}`, {
-        userId: user._id,
-        email: user.email,
-        resetToken: process.env.NODE_ENV === 'development' ? token : undefined,
-      });
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+      try {
+        // Send email with reset token
+        const emailSender = new Email({user, url: resetUrl});
+        await emailSender.sendPasswordReset();
+
+        logger.info(`Password reset email sent successfully`, {
+          userId: user._id,
+          email: user.email,
+        });
+      } catch (error) {
+        logger.error(`Failed to send password reset email`, {
+          userId: user._id,
+          email: user.email,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+
+        // In development, still log the token for testing
+        if (process.env.NODE_ENV === 'development') {
+          logger.info(`Password reset token for development: ${token}`, {
+            userId: user._id,
+            email: user.email,
+          });
+        }
+
+        // Don't throw error to prevent revealing email existence
+        // Just log the error and continue
+      }
     } else {
       logger.warn(`Password reset requested for non-existent email: ${email}`);
     }
