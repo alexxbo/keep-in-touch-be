@@ -22,3 +22,6 @@ logs/
 
 # Test coverage
 /coverage/
+
+# GitHub instructions
+.github/instructions/
