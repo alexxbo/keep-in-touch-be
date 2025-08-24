@@ -4,9 +4,9 @@ import jwt from 'jsonwebtoken';
 import {Types} from 'mongoose';
 import request from 'supertest';
 
-import User from '../../models/user/user.model';
-import {PasswordResetTokenService} from '../../services/passwordResetToken.service';
-import {createTestApp, createTestUser} from '../testHelpers';
+import User from '../../../models/user/user.model';
+import {PasswordResetTokenService} from '../../../services/passwordResetToken.service';
+import {createTestApp, createTestUser} from '../../testHelpers';
 
 describe('Authentication Integration Tests', () => {
   let app: Express;

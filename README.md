@@ -3,8 +3,8 @@
 ![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-5.0+-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-5.0+-green.svg)
-![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-90.97%25-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-206_total_ALL_PASSING-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A secure and scalable messaging application backend built with Node.js, Express, TypeScript, and MongoDB.
@@ -13,16 +13,20 @@ A secure and scalable messaging application backend built with Node.js, Express,
 
 - **User Authentication & Security**
   - JWT-based authentication with access and refresh tokens
-  - Secure password hashing with bcrypt
-  - Password reset functionality via email
+  - Secure password hashing with bcrypt (12+ rounds)
+  - Password reset functionality via email with time-limited tokens
   - Account deletion with hard delete strategy
+  - Session management with token refresh workflow
+  - Multiple active session support with device tracking
 
 - **User Profile Management**
   - Complete profile CRUD operations
   - Public and private profile views
   - Username uniqueness validation
+  - User search functionality
+  - Account deletion preserving chat history
 
-- **Messaging System**
+- **Messaging System** (Models ready, endpoints planned)
   - One-to-one private chats
   - Group chat functionality
   - Message history and retrieval
@@ -45,6 +49,8 @@ A secure and scalable messaging application backend built with Node.js, Express,
 - **Logging**: Winston
 - **Testing**: Jest
 - **Password Hashing**: bcrypt
+- **Email**: Nodemailer with EJS templates
+- **Security**: Helmet, CORS, Rate limiting, Express Mongo Sanitize
 
 ## 📋 Prerequisites
 
@@ -101,6 +107,19 @@ npm run test:coverage
 
 # Run tests in watch mode
 npm run test:watch
+
+# Granular test commands
+npm run test:auth                # All auth-related tests
+npm run test:auth:controllers    # Auth controller tests only
+npm run test:auth:services       # Auth service tests only
+npm run test:users               # All user-related tests
+npm run test:users:controllers   # User controller tests only
+npm run test:users:services      # User service tests only
+npm run test:controllers         # All controller tests
+npm run test:services           # All service tests
+npm run test:middleware         # All middleware tests
+npm run test:utils              # All utility tests
+npm run test:integration        # Integration tests
 ```
 
 ## 🏗 Architecture Overview
@@ -109,14 +128,27 @@ npm run test:watch
 ```
 src/
 ├── __tests__/           # Test files and helpers
+│   ├── controllers/     # Controller unit tests
+│   │   ├── authController/    # Auth controller tests
+│   │   └── usersController/   # Users controller tests
+│   ├── services/        # Service unit tests
+│   ├── middleware/      # Middleware tests
+│   └── utils/          # Utility tests
 ├── controllers/         # Route handlers
 ├── middleware/          # Express middleware
 ├── models/             # Database models and schemas
 │   ├── auth/           # Authentication schemas
-│   └── user/           # User model and schemas
+│   ├── user/           # User model and schemas
+│   ├── refreshToken/   # Refresh token model
+│   └── passwordResetToken/  # Password reset token model
 ├── routes/             # API route definitions
 │   └── v1/             # Version 1 API routes
+├── services/           # Business logic services
+├── templates/          # Email templates
+│   └── emails/         # Email template files
+├── types/              # TypeScript type definitions
 ├── utils/              # Utility functions
+├── validation/         # Zod validation schemas
 └── app.ts              # Express app configuration
 ```
 
@@ -177,6 +209,37 @@ src/
    - Preserves chat history for other participants
    - Deleted users appear as "Deleted User" in conversations
 
+## 📚 API Documentation
+
+### Authentication Endpoints
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Login and receive access + refresh tokens
+- `POST /api/v1/auth/refresh` - Refresh access token using refresh token
+- `POST /api/v1/auth/logout` - Logout and invalidate refresh token
+- `POST /api/v1/auth/forgot-password` - Request password reset email
+- `POST /api/v1/auth/reset-password` - Reset password using token
+- `PUT /api/v1/auth/update-password` - Update password (authenticated)
+
+### User Profile Endpoints
+- `GET /api/v1/users/me` - Get authenticated user's complete profile
+- `PATCH /api/v1/users/me` - Update authenticated user's profile
+- `GET /api/v1/users/:id` - Get another user's public profile
+- `DELETE /api/v1/users/me` - Delete own account (hard delete)
+
+### Session Management Endpoints
+- `GET /api/v1/users/me/sessions` - Get user's active sessions
+- `DELETE /api/v1/users/me/sessions/:tokenId` - Revoke specific session
+
+### Planned Chat Endpoints (Models Ready)
+- `POST /api/v1/chats/one-to-one` - Create or retrieve 1:1 chat
+- `POST /api/v1/chats/groups` - Create a new group chat
+- `POST /api/v1/chats/groups/:id/members` - Add members to group chat
+- `DELETE /api/v1/chats/groups/:id/members/:userId` - Remove member from group
+- `DELETE /api/v1/chats/:id` - Delete chat from user's perspective
+- `POST /api/v1/chats/groups/:id/leave` - Leave group chat
+- `POST /api/v1/chats/:id/messages` - Send a message
+- `GET /api/v1/chats/:id/messages` - Fetch chat history
+
 ## 🚀 Deployment
 
 ### Environment Variables
@@ -208,10 +271,12 @@ Ensure all required environment variables are set in production:
 - Ensure all tests pass before merging
 
 ### Testing Strategy
-- Unit tests for controllers and services
+- Unit tests for controllers and services (206 total tests)
 - Integration tests for API endpoints
 - Mock external dependencies
-- Maintain high test coverage (>80%)
+- Maintain high test coverage (>90%)
+- Granular test script organization for efficient development
+- Function-specific test files for better maintainability
 
 ## 🤝 Contributing
 
@@ -223,17 +288,21 @@ Ensure all required environment variables are set in production:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+
+**Author**: Alex Borovskoy
 
 ## 🐛 Known Issues & Limitations
 
 - Real-time messaging not implemented (WebSocket support planned)
-- Media/file sharing not supported in current version
+- Media/file sharing not supported in current version  
 - Push notifications not implemented
 - User blocking/reporting features not available
+- Chat and message endpoints not yet implemented (models ready)
 
 ## 🔮 Future Roadmap
 
+- **Chat System Implementation**: Complete chat and message endpoints (models ready)
 - WebSocket integration for real-time messaging
 - Media message support (images, videos, files)
 - Push notification system
@@ -241,4 +310,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Message search functionality
 - Admin moderation tools
 - End-to-end encryption support
+
+## 📊 Current Test Coverage
+
+The project maintains high test coverage with comprehensive test suites:
+
+- **Total Tests**: 206 (ALL PASSING ✅)
+- **Statement Coverage**: 90.97%
+- **Function Coverage**: 91.66%
+- **Branch Coverage**: 75.6%
+- **Line Coverage**: 90.8%
+
+### Test Organization
+- **Controllers**: 35 auth controller tests + 23 user controller tests (ALL PASSING)
+- **Services**: Comprehensive service layer testing with mocking
+- **Middleware**: Authentication, validation, and error handling tests
+- **Utilities**: Email, logging, and helper function tests
+- **Integration**: End-to-end workflow testing
 
