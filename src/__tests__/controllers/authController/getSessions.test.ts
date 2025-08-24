@@ -1,7 +1,9 @@
 import {Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
+
 import {getSessions} from '~controllers/auth.controller';
+
 import {AuthService} from '~services/auth.service';
 
 // Mock the AuthService

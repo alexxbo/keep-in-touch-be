@@ -2,7 +2,9 @@ import bcrypt from 'bcryptjs';
 import {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import request from 'supertest';
+
 import User from '~models/user/user.model';
+
 import {createTestApp, registerAndLogin} from '../../testHelpers';
 
 describe('PATCH /api/v1/auth/update-password', () => {

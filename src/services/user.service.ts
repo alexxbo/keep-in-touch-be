@@ -1,13 +1,16 @@
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
+
 import User, {IUser} from '~models/user/user.model';
 import {
   CompleteProfileType,
   PublicProfileType,
   UserSummaryType,
 } from '~models/user/user.types';
+
 import {BaseError} from '~utils/BaseError';
 import {logger} from '~utils/logger';
+
 import {RefreshTokenService} from './refreshToken.service';
 
 export class UserService {

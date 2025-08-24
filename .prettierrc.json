@@ -3,5 +3,25 @@
   "arrowParens": "avoid",
   "bracketSameLine": true,
   "bracketSpacing": false,
-  "singleQuote": true
+  "singleQuote": true,
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "importOrder": [
+    "^node:",
+    "<THIRD_PARTY_MODULES>",
+    "^~config/(.*)$",
+    "^~routes/(.*)$",
+    "^~middleware/(.*)$",
+    "^~controllers/(.*)$",
+    "^~services/(.*)$",
+    "^~validation/(.*)$",
+    "^~templates/(.*)$",
+    "^~models/(.*)$",
+    "^~types/(.*)$",
+    "^~utils/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderCaseInsensitive": true
 }

@@ -2,6 +2,7 @@ import type {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
 import request from 'supertest';
+
 import {createTestApp, createTestUser} from '../../testHelpers';
 
 describe('GET /api/v1/users/:id', () => {

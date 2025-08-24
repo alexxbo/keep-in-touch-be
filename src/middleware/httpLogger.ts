@@ -1,5 +1,7 @@
 import morgan from 'morgan';
+
 import env from '~config/env.config';
+
 import {logger} from '~utils/logger';
 
 const stream = {

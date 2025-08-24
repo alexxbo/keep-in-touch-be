@@ -2,7 +2,9 @@ import {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
 import request from 'supertest';
+
 import {PasswordResetTokenService} from '~services/passwordResetToken.service';
+
 import {createTestApp, createTestUser} from '../../testHelpers';
 
 describe('POST /api/v1/auth/reset-password - Unit Tests', () => {

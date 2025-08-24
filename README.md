@@ -264,6 +264,28 @@ Ensure all required environment variables are set in production:
 - Write comprehensive unit tests
 - Use descriptive variable and function names
 
+### Import Organization
+The project uses automated import sorting for consistent code organization:
+
+```bash
+npm run format        # Format all files with import sorting
+npm run format:check  # Check formatting without changes
+```
+
+**Import Order**: Node.js modules → Third-party packages → Config → Types → Utils → Models → Services → Middleware → Controllers → Routes → Validation → Templates → Relative imports
+
+**Example**:
+```typescript
+import {Request, Response} from 'express';
+import {StatusCodes} from 'http-status-codes';
+
+import {AuthService} from '~services/auth.service';
+
+import {RegisterUserType} from '~models/auth/auth.types';
+
+import {BaseError} from '~utils/BaseError';
+```
+
 ### Git Workflow
 - Create feature branches from `main`
 - Write meaningful commit messages

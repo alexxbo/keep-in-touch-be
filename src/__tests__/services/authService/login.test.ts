@@ -1,7 +1,9 @@
 import {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import request from 'supertest';
+
 import User from '~models/user/user.model';
+
 import {createTestApp, createTestUser} from '../../testHelpers';
 
 describe('POST /api/v1/auth/login', () => {

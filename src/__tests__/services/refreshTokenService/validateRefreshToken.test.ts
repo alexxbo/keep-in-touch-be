@@ -1,7 +1,10 @@
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
-import RefreshToken from '~models/refreshToken/refreshToken.model';
+
 import {RefreshTokenService} from '~services/refreshToken.service';
+
+import RefreshToken from '~models/refreshToken/refreshToken.model';
+
 import {BaseError} from '~utils/BaseError';
 
 // Mock dependencies

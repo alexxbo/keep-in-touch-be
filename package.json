@@ -35,6 +35,9 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
+    "format:imports": "prettier --write src/**/*.ts --plugin=@trivago/prettier-plugin-sort-imports",
+    "format:check": "prettier --check src/**/*.ts",
+    "format:tests": "prettier --write src/__tests__/**/*.ts",
     "prepare": "husky"
   },
   "keywords": [],
@@ -61,6 +64,7 @@
     "zod": "^4.0.14"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",

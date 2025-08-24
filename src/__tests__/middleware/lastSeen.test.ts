@@ -1,5 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
+
 import {updateLastSeen} from '~middleware/lastSeen';
+
 import {logger} from '~utils/logger';
 
 jest.mock('~utils/logger', () => ({

@@ -1,5 +1,7 @@
 import {Types} from 'mongoose';
+
 import {IUser} from '~models/user/user.model';
+
 import {Email} from '~utils/email';
 
 // Mock the env config

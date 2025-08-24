@@ -1,6 +1,8 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
+
 import {AuthService} from '~services/auth.service';
+
 import {BaseError} from '~utils/BaseError';
 
 export const authenticateToken = async (

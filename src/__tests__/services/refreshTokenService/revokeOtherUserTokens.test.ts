@@ -1,6 +1,8 @@
 import {Types} from 'mongoose';
-import RefreshToken from '~models/refreshToken/refreshToken.model';
+
 import {RefreshTokenService} from '~services/refreshToken.service';
+
+import RefreshToken from '~models/refreshToken/refreshToken.model';
 
 // Mock dependencies
 jest.mock('~models/refreshToken/refreshToken.model');

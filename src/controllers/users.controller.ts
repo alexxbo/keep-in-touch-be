@@ -1,7 +1,10 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {UserParamsType} from '~models/user/user.types';
+
 import {UserService} from '~services/user.service';
+
+import {UserParamsType} from '~models/user/user.types';
+
 import {BaseError} from '~utils/BaseError';
 import {runCatching} from '~utils/runCatching';
 

@@ -1,6 +1,8 @@
 import {Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
+
 import {login} from '~controllers/auth.controller';
+
 import {AuthService} from '~services/auth.service';
 
 // Mock the AuthService

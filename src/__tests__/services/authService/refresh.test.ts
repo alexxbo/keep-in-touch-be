@@ -1,6 +1,7 @@
 import {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import request from 'supertest';
+
 import {createTestApp} from '../../testHelpers';
 
 describe('POST /api/v1/auth/refresh', () => {

@@ -2,7 +2,9 @@ import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import {Types} from 'mongoose';
 import type {StringValue} from 'ms';
+
 import env from '~config/env.config';
+
 import {
   ForgotPasswordType,
   LoginType,
@@ -12,9 +14,11 @@ import {
 } from '~models/auth/auth.types';
 import {IUser} from '~models/user/user.model';
 import {CompleteProfileType, PublicProfileType} from '~models/user/user.types';
+
 import {BaseError} from '~utils/BaseError';
 import {Email} from '~utils/email';
 import {logger} from '~utils/logger';
+
 import {PasswordResetTokenService} from './passwordResetToken.service';
 import {RefreshTokenService} from './refreshToken.service';
 import {UserService} from './user.service';

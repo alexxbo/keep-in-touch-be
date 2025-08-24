@@ -1,5 +1,8 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
+
+import {AuthService} from '~services/auth.service';
+
 import {
   ForgotPasswordType,
   LoginType,
@@ -9,7 +12,7 @@ import {
   ResetPasswordType,
   UpdatePasswordType,
 } from '~models/auth/auth.types';
-import {AuthService} from '~services/auth.service';
+
 import {BaseError} from '~utils/BaseError';
 import {runCatching} from '~utils/runCatching';
 

@@ -1,7 +1,9 @@
 import type {Express} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import request from 'supertest';
+
 import User from '~models/user/user.model';
+
 import {
   createTestApp,
   createTestUser,

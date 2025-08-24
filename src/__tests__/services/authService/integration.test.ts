@@ -5,8 +5,11 @@ import {Types} from 'mongoose';
 import request from 'supertest';
 
 import env from '~config/env.config';
-import User from '~models/user/user.model';
+
 import {PasswordResetTokenService} from '~services/passwordResetToken.service';
+
+import User from '~models/user/user.model';
+
 import {createTestApp, createTestUser} from '../../testHelpers';
 
 describe('Authentication Integration Tests', () => {

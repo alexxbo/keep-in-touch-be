@@ -1,6 +1,8 @@
 import {Types} from 'mongoose';
-import User from '~models/user/user.model';
+
 import {UserService} from '~services/user.service';
+
+import User from '~models/user/user.model';
 
 // Mock dependencies
 jest.mock('~utils/logger');
