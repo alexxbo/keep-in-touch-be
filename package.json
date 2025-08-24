@@ -27,7 +27,7 @@
   },
   "keywords": [],
   "author": "Alex Borovskoy",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",

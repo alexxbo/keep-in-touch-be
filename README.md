@@ -5,7 +5,7 @@
 ![MongoDB](https://img.shields.io/badge/mongodb-5.0+-green.svg)
 ![Coverage](https://img.shields.io/badge/coverage-90.97%25-brightgreen.svg)
 ![Tests](https://img.shields.io/badge/tests-206_total_ALL_PASSING-brightgreen.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A secure and scalable messaging application backend built with Node.js, Express, TypeScript, and MongoDB.
 
@@ -288,7 +288,7 @@ Ensure all required environment variables are set in production:
 
 ## 📄 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details or visit [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT).
 
 **Author**: Alex Borovskoy
 
