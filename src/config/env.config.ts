@@ -39,15 +39,13 @@ const EnvSchema = z
 
     // Email Configuration
     EMAIL_SERVICE: z.string().default('gmail'),
-    EMAIL_HOST: z.string().optional(),
-    EMAIL_PORT: z.coerce.number().optional(),
-    EMAIL_USER: z.string().optional(),
-    EMAIL_PASS: z.string().optional(),
-    EMAIL_FROM: z.email().optional(),
+    EMAIL_USER: z.string('EMAIL_USER must be set'),
+    EMAIL_PASS: z.string('EMAIL_PASS must be set'),
+    EMAIL_FROM: z.email('EMAIL_FROM must be a valid email address'),
 
     // Application Configuration
     APP_NAME: z.string().default('Keep in Touch'),
-    SUPPORT_EMAIL: z.email().optional(),
+    SUPPORT_EMAIL: z.email('SUPPORT_EMAIL must be a valid email address'),
 
     // Frontend Configuration
     FRONTEND_URL: z.url().default('http://localhost:3001'),
