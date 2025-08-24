@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import app from './app';
 import {connectToDatabase} from './config/database.config';
+import env from './config/env.config';
 import {logger} from './utils/logger';
 
 dotenv.config();
@@ -16,9 +17,8 @@ let server: import('http').Server;
 (async () => {
   try {
     await connectToDatabase();
-    const PORT = process.env.PORT || 3000;
-    server = app.listen(PORT, () => {
-      logger.info(`🚀 Server is running on port ${PORT}`);
+    server = app.listen(env.PORT, () => {
+      logger.info(`🚀 Server is running on port ${env.PORT}`);
     });
   } catch (err) {
     logger.error('Failed to start server:', err);

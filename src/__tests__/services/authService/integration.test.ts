@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import {Types} from 'mongoose';
 import request from 'supertest';
 
+import env from '../../../config/env.config';
 import User from '../../../models/user/user.model';
 import {PasswordResetTokenService} from '../../../services/passwordResetToken.service';
 import {createTestApp, createTestUser} from '../../testHelpers';
@@ -81,11 +82,11 @@ describe('Authentication Integration Tests', () => {
       // 5. Verify tokens are valid JWTs with correct payload
       const decodedRegisterToken = jwt.verify(
         registerToken,
-        process.env.ACCESS_TOKEN_SECRET!,
+        env.ACCESS_TOKEN_SECRET,
       ) as {userId: string};
       const decodedLoginToken = jwt.verify(
         loginToken,
-        process.env.ACCESS_TOKEN_SECRET!,
+        env.ACCESS_TOKEN_SECRET,
       ) as {userId: string};
 
       expect(decodedRegisterToken.userId).toBe(user?._id?.toString());

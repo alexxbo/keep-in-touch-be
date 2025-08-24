@@ -1,5 +1,6 @@
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
+import env from '../config/env.config';
 import RefreshToken, {
   IRefreshToken,
 } from '../models/refreshToken/refreshToken.model';
@@ -53,7 +54,7 @@ export class RefreshTokenService {
     const {userId, deviceInfo} = data;
 
     // Calculate expiration date from JWT token
-    const expiryTime = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
+    const expiryTime = env.JWT_REFRESH_EXPIRE || '7d';
     const expiresAt = new Date(Date.now() + this.parseTimeToMs(expiryTime));
 
     // Create refresh token document to track the JWT token

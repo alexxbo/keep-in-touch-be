@@ -1,7 +1,8 @@
 import ejs from 'ejs';
 import {convert} from 'html-to-text';
-import nodemailer, {Transporter} from 'nodemailer';
+import nodemailer, {type Transporter} from 'nodemailer';
 import path from 'path';
+import env from '../config/env.config';
 import {IUser} from '../models/user/user.model';
 
 interface EmailOptions {
@@ -18,24 +19,24 @@ interface EmailConstructorParams {
 }
 
 export class Email {
-  private to: string;
-  private firstName: string;
-  private url: string;
-  private from: string;
+  readonly to: string;
+  readonly firstName: string;
+  readonly url: string;
+  readonly from: string;
 
   constructor({user, url}: EmailConstructorParams) {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
     this.url = url;
-    this.from = `Keep in Touch <${process.env.EMAIL_FROM}>`;
+    this.from = `Keep in Touch <${env.EMAIL_FROM || 'noreply@keepintouch.com'}>`;
   }
 
   private newTransport(): Transporter {
     return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
+      service: env.EMAIL_SERVICE,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        user: env.EMAIL_USER,
+        pass: env.EMAIL_PASS,
       },
     });
   }
@@ -111,8 +112,8 @@ export class Email {
       return await ejs.renderFile(templatePath, {
         firstName: this.firstName,
         url: this.url,
-        appName: process.env.APP_NAME,
-        supportEmail: process.env.SUPPORT_EMAIL,
+        appName: env.APP_NAME,
+        supportEmail: env.SUPPORT_EMAIL,
       });
     } catch (error) {
       console.error(`Failed to render email template ${templateName}:`, error);

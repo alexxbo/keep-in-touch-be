@@ -2,15 +2,17 @@ import {Types} from 'mongoose';
 import {IUser} from '../../../models/user/user.model';
 import {Email} from '../../../utils/email';
 
+// Mock the env config
+jest.mock('../../../config/env.config', () => ({
+  APP_NAME: 'Keep in Touch',
+  SUPPORT_EMAIL: 'support@keepintouch.com',
+}));
+
 describe('Email Construction', () => {
   let testUser: Partial<IUser>;
   let resetUrl: string;
 
   beforeEach(() => {
-    // Set environment variables for testing
-    process.env.APP_NAME = 'Keep in Touch';
-    process.env.SUPPORT_EMAIL = 'support@keepintouch.com';
-
     testUser = {
       email: 'test@example.com',
       name: 'John Doe',

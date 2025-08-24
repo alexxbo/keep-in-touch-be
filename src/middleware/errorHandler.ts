@@ -3,6 +3,7 @@ import {StatusCodes} from 'http-status-codes';
 import z from 'zod';
 import {BaseError} from '../utils/BaseError';
 import {logger} from '../utils/logger';
+import env from '../config/env.config';
 
 const errorHandler = (
   err: any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -10,7 +11,7 @@ const errorHandler = (
   res: Response,
   next: NextFunction, // eslint-disable-line @typescript-eslint/no-unused-vars
 ) => {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = env.NODE_ENV === 'production';
   let needToLogStack = false;
 
   if (!(err instanceof Error)) {

@@ -4,6 +4,9 @@ import {RefreshTokenService} from '../../../services/refreshToken.service';
 
 // Mock dependencies
 jest.mock('../../../models/refreshToken/refreshToken.model');
+jest.mock('../../../config/env.config', () => ({
+  JWT_REFRESH_EXPIRE: '7d',
+}));
 
 describe('RefreshTokenService.storeRefreshToken', () => {
   const mockUserId = new Types.ObjectId();
@@ -12,21 +15,20 @@ describe('RefreshTokenService.storeRefreshToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.REFRESH_TOKEN_EXPIRES_IN = '7d';
-  });
-
-  afterEach(() => {
-    delete process.env.REFRESH_TOKEN_EXPIRES_IN;
+    // Reset the env mock to default
+    const envMock = jest.requireMock('../../../config/env.config');
+    envMock.JWT_REFRESH_EXPIRE = '7d';
   });
 
   describe('parseTimeToMs edge cases', () => {
     it('should parse hours correctly', async () => {
-      process.env.REFRESH_TOKEN_EXPIRES_IN = '12h';
+      // Mock the env configuration to return custom expire time
+      const envMock = jest.requireMock('../../../config/env.config');
+      envMock.JWT_REFRESH_EXPIRE = '12h';
 
       const mockSave = jest.fn().mockResolvedValue(undefined);
       const mockRefreshToken = {
         _id: mockTokenId,
-        userId: mockUserId,
         save: mockSave,
       };
 
@@ -46,7 +48,9 @@ describe('RefreshTokenService.storeRefreshToken', () => {
     });
 
     it('should parse minutes correctly', async () => {
-      process.env.REFRESH_TOKEN_EXPIRES_IN = '30m';
+      // Mock the env configuration to return custom expire time
+      const envMock = jest.requireMock('../../../config/env.config');
+      envMock.JWT_REFRESH_EXPIRE = '30m';
 
       const mockSave = jest.fn().mockResolvedValue(undefined);
       const mockRefreshToken = {
@@ -71,7 +75,9 @@ describe('RefreshTokenService.storeRefreshToken', () => {
     });
 
     it('should parse seconds correctly', async () => {
-      process.env.REFRESH_TOKEN_EXPIRES_IN = '3600s';
+      // Mock the env configuration to return custom expire time
+      const envMock = jest.requireMock('../../../config/env.config');
+      envMock.JWT_REFRESH_EXPIRE = '3600s';
 
       const mockSave = jest.fn().mockResolvedValue(undefined);
       const mockRefreshToken = {
@@ -96,7 +102,9 @@ describe('RefreshTokenService.storeRefreshToken', () => {
     });
 
     it('should default to 7 days for invalid format', async () => {
-      process.env.REFRESH_TOKEN_EXPIRES_IN = 'invalid';
+      // Mock the env configuration to return invalid expire time
+      const envMock = jest.requireMock('../../../config/env.config');
+      envMock.JWT_REFRESH_EXPIRE = 'invalid';
 
       const mockSave = jest.fn().mockResolvedValue(undefined);
       const mockRefreshToken = {
@@ -121,7 +129,9 @@ describe('RefreshTokenService.storeRefreshToken', () => {
     });
 
     it('should default to 7 days for unknown unit', async () => {
-      process.env.REFRESH_TOKEN_EXPIRES_IN = '5w'; // weeks not supported
+      // Mock the env configuration to return time with unknown unit
+      const envMock = jest.requireMock('../../../config/env.config');
+      envMock.JWT_REFRESH_EXPIRE = '5w'; // weeks not supported
 
       const mockSave = jest.fn().mockResolvedValue(undefined);
       const mockRefreshToken = {

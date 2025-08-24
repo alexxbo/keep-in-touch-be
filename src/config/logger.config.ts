@@ -1,7 +1,8 @@
 import path from 'path';
 import winston from 'winston';
+import env from './env.config';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === 'production';
 
 const {align, combine, timestamp, printf, colorize} = winston.format;
 const transports = [];
@@ -33,7 +34,7 @@ if (isProduction) {
 }
 
 export const loggerOptions = {
-  level: isProduction ? 'info' : 'debug',
+  level: env.LOG_LEVEL,
   levels: winston.config.npm.levels,
   transports,
   exitOnError: false,

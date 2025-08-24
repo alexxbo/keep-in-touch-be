@@ -1,4 +1,5 @@
 import morgan from 'morgan';
+import env from '../config/env.config';
 import {logger} from '../utils/logger';
 
 const stream = {
@@ -19,7 +20,7 @@ export const detailedHttpLogger = morgan(
     stream,
     skip: (req, res) => {
       // Skip successful requests in production
-      return process.env.NODE_ENV === 'production' && res.statusCode < 400;
+      return env.NODE_ENV === 'production' && res.statusCode < 400;
     },
   },
 );

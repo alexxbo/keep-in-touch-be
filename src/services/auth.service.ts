@@ -2,6 +2,7 @@ import {StatusCodes} from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import {Types} from 'mongoose';
 import type {StringValue} from 'ms';
+import env from '../config/env.config';
 import {
   ForgotPasswordType,
   LoginType,
@@ -35,10 +36,11 @@ export interface Options {
 }
 
 export class AuthService {
-  private static readonly ACCESS_TOKEN_EXPIRY = (process.env
-    .ACCESS_TOKEN_EXPIRES_IN || '15m') as StringValue;
-  private static readonly REFRESH_TOKEN_EXPIRY = (process.env
-    .REFRESH_TOKEN_EXPIRES_IN || '7d') as StringValue;
+  private static readonly ACCESS_TOKEN_EXPIRY =
+    env.JWT_ACCESS_EXPIRE as StringValue;
+
+  private static readonly REFRESH_TOKEN_EXPIRY =
+    env.JWT_REFRESH_EXPIRE as StringValue;
 
   /**
    * Register a new user
@@ -244,7 +246,7 @@ export class AuthService {
         userId: user._id as Types.ObjectId,
       });
 
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+      const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 
       try {
         // Send email with reset token
@@ -263,7 +265,7 @@ export class AuthService {
         });
 
         // In development, still log the token for testing
-        if (process.env.NODE_ENV === 'development') {
+        if (env.NODE_ENV === 'development') {
           logger.info(`Password reset token for development: ${token}`, {
             userId: user._id,
             email: user.email,
@@ -427,15 +429,7 @@ export class AuthService {
     type: 'access' | 'refresh',
   ): {userId: string; type: string} {
     const jwtSecret =
-      type === 'access'
-        ? process.env.ACCESS_TOKEN_SECRET
-        : process.env.REFRESH_TOKEN_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
+      type === 'access' ? env.ACCESS_TOKEN_SECRET : env.REFRESH_TOKEN_SECRET;
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as {
@@ -461,14 +455,6 @@ export class AuthService {
    * Generate JWT access token
    */
   private static generateAccessToken(userId: string): string {
-    const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
-
     const payload = {
       userId,
       type: 'access',
@@ -477,21 +463,13 @@ export class AuthService {
     };
     const options = {expiresIn: AuthService.ACCESS_TOKEN_EXPIRY};
 
-    return jwt.sign(payload, jwtSecret, options);
+    return jwt.sign(payload, env.ACCESS_TOKEN_SECRET, options);
   }
 
   /**
    * Generate JWT refresh token
    */
   private static generateRefreshToken(userId: string): string {
-    const jwtSecret = process.env.REFRESH_TOKEN_SECRET;
-    if (!jwtSecret) {
-      throw new BaseError(
-        'JWT secret is not configured',
-        StatusCodes.INTERNAL_SERVER_ERROR,
-      );
-    }
-
     const payload = {
       userId,
       type: 'refresh',
@@ -500,7 +478,7 @@ export class AuthService {
     };
     const options = {expiresIn: AuthService.REFRESH_TOKEN_EXPIRY};
 
-    return jwt.sign(payload, jwtSecret, options);
+    return jwt.sign(payload, env.REFRESH_TOKEN_SECRET, options);
   }
 
   /**

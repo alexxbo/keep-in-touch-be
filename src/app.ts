@@ -3,6 +3,7 @@ import cors from 'cors';
 import express, {Request, Response} from 'express';
 import helmet from 'helmet';
 import {StatusCodes} from 'http-status-codes';
+import env from './config/env.config';
 import errorHandler from './middleware/errorHandler';
 import {detailedHttpLogger, httpLogger} from './middleware/httpLogger';
 import apiRoutes from './routes';
@@ -15,12 +16,12 @@ app.use(helmet());
 app.use(compression());
 app.use(express.urlencoded({extended: true}));
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === 'production';
 
 if (isProduction) {
   app.use(
     cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || false,
+      origin: env.ALLOWED_ORIGINS?.split(',') || false,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: false,
