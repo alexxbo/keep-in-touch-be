@@ -1,9 +1,9 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
 import z from 'zod';
+import env from '../config/env.config';
 import {BaseError} from '../utils/BaseError';
 import {logger} from '../utils/logger';
-import env from '../config/env.config';
 
 const errorHandler = (
   err: any, // eslint-disable-line @typescript-eslint/no-explicit-any
