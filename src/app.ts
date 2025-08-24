@@ -3,11 +3,11 @@ import cors from 'cors';
 import express, {Request, Response} from 'express';
 import helmet from 'helmet';
 import {StatusCodes} from 'http-status-codes';
-import env from './config/env.config';
-import errorHandler from './middleware/errorHandler';
-import {detailedHttpLogger, httpLogger} from './middleware/httpLogger';
+import env from '~config/env.config';
+import errorHandler from '~middleware/errorHandler';
+import {detailedHttpLogger, httpLogger} from '~middleware/httpLogger';
+import {BaseError} from '~utils/BaseError';
 import apiRoutes from './routes';
-import {BaseError} from './utils/BaseError';
 
 const app = express();
 

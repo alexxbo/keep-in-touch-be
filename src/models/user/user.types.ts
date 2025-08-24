@@ -5,7 +5,7 @@ import {
   updateProfileSchema,
   userParamsSchema,
   userSummarySchema,
-} from '../../validation/user.schemas';
+} from '~validation/user.schemas';
 
 export type UserSummaryType = z.infer<typeof userSummarySchema>;
 export type CompleteProfileType = z.infer<typeof completeProfileSchema>;

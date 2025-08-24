@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {runCatching} from '../../utils/runCatching';
+import {runCatching} from '~utils/runCatching';
 
 describe('runCatching debug', () => {
   let mockRequest: Partial<Request>;

@@ -1,11 +1,11 @@
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
-import env from '../config/env.config';
+import env from '~config/env.config';
 import RefreshToken, {
   IRefreshToken,
-} from '../models/refreshToken/refreshToken.model';
-import {BaseError} from '../utils/BaseError';
-import {logger} from '../utils/logger';
+} from '~models/refreshToken/refreshToken.model';
+import {BaseError} from '~utils/BaseError';
+import {logger} from '~utils/logger';
 
 export interface CreateRefreshTokenData {
   userId: Types.ObjectId;

@@ -1,9 +1,9 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {UserParamsType} from '../models/user/user.types';
-import {UserService} from '../services/user.service';
-import {BaseError} from '../utils/BaseError';
-import {runCatching} from '../utils/runCatching';
+import {UserParamsType} from '~models/user/user.types';
+import {UserService} from '~services/user.service';
+import {BaseError} from '~utils/BaseError';
+import {runCatching} from '~utils/runCatching';
 
 export const getCurrentUser = runCatching(
   async (req: Request, res: Response, next: NextFunction) => {

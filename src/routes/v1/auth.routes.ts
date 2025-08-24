@@ -9,9 +9,9 @@ import {
   resetPassword,
   revokeSession,
   updatePassword,
-} from '../../controllers/auth.controller';
-import {authenticateToken} from '../../middleware/auth';
-import {validateRequest} from '../../middleware/validation.middleware';
+} from '~controllers/auth.controller';
+import {authenticateToken} from '~middleware/auth';
+import {validateRequest} from '~middleware/validation.middleware';
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -20,7 +20,7 @@ import {
   registerUserSchema,
   resetPasswordSchema,
   updatePasswordSchema,
-} from '../../validation/auth.schemas';
+} from '~validation/auth.schemas';
 
 const router = Router();
 

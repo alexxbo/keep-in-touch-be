@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
+import 'module-alias/register';
+import {connectToDatabase} from '~config/database.config';
+import env from '~config/env.config';
+import {logger} from '~utils/logger';
 import app from './app';
-import {connectToDatabase} from './config/database.config';
-import env from './config/env.config';
-import {logger} from './utils/logger';
 
 dotenv.config();
 

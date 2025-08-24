@@ -4,13 +4,10 @@ import {
   getCurrentUser,
   getUserById,
   updateProfile,
-} from '../../controllers/users.controller';
-import {authenticateToken} from '../../middleware/auth';
-import {validateRequest} from '../../middleware/validation.middleware';
-import {
-  updateProfileSchema,
-  userParamsSchema,
-} from '../../validation/user.schemas';
+} from '~controllers/users.controller';
+import {authenticateToken} from '~middleware/auth';
+import {validateRequest} from '~middleware/validation.middleware';
+import {updateProfileSchema, userParamsSchema} from '~validation/user.schemas';
 
 const router = Router();
 

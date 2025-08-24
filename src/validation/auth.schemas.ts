@@ -1,10 +1,10 @@
-import z from 'zod';
+import {z} from 'zod';
 import {
   emailSchema,
   nameSchema,
   passwordSchema,
   usernameSchema,
-} from '../models/user/user.schemas';
+} from '~models/user/user.schemas';
 
 export const registerUserSchema = z.object({
   username: usernameSchema,

@@ -1,9 +1,9 @@
 import {Express} from 'express';
 import request from 'supertest';
+import {RegisterUserType} from '~models/auth/auth.types';
+import User, {IUser} from '~models/user/user.model';
+import {AuthResult} from '~services/auth.service';
 import app from '../app';
-import {RegisterUserType} from '../models/auth/auth.types';
-import User, {IUser} from '../models/user/user.model';
-import {AuthResult} from '../services';
 
 export const createTestApp = (): Express => {
   return app;

@@ -3,9 +3,9 @@ import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
 import PasswordResetToken, {
   IPasswordResetToken,
-} from '../models/passwordResetToken/passwordResetToken.model';
-import {BaseError} from '../utils/BaseError';
-import {logger} from '../utils/logger';
+} from '~models/passwordResetToken/passwordResetToken.model';
+import {BaseError} from '~utils/BaseError';
+import {logger} from '~utils/logger';
 
 export interface CreatePasswordResetTokenData {
   userId: Types.ObjectId;

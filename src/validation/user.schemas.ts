@@ -5,7 +5,7 @@ import {
   objectIdSchema,
   roleSchema,
   usernameSchema,
-} from '../models/user/user.schemas';
+} from '~models/user/user.schemas';
 
 export const userParamsSchema = z.object({
   id: objectIdSchema,

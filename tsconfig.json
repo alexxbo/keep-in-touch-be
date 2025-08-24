@@ -9,7 +9,20 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "typeRoots" : ["./src/types", "node_modules/@types"]
+    "typeRoots" : ["./src/types", "node_modules/@types"],
+    "baseUrl": "./src",
+    "paths": {
+      "~models/*": ["./models/*"],
+      "~services/*": ["./services/*"],
+      "~controllers/*": ["./controllers/*"],
+      "~middleware/*": ["./middleware/*"],
+      "~utils/*": ["./utils/*"],
+      "~config/*": ["./config/*"],
+      "~routes/*": ["./routes/*"],
+      "~validation/*": ["./validation/*"],
+      "~types/*": ["./types/*"],
+      "~templates/*": ["./templates/*"]
+    }
   },
   "include": [
     "src/**/*"

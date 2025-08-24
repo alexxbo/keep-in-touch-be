@@ -8,10 +8,10 @@ import {
   RegisterUserType,
   ResetPasswordType,
   UpdatePasswordType,
-} from '../models/auth/auth.types';
-import {AuthService} from '../services/auth.service';
-import {BaseError} from '../utils/BaseError';
-import {runCatching} from '../utils/runCatching';
+} from '~models/auth/auth.types';
+import {AuthService} from '~services/auth.service';
+import {BaseError} from '~utils/BaseError';
+import {runCatching} from '~utils/runCatching';
 
 export const register = runCatching(async (req: Request, res: Response) => {
   const userData = req.body as RegisterUserType;

@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import z from 'zod';
-import {runCatching} from '../utils/runCatching';
+import {runCatching} from '~utils/runCatching';
 
 type RequestSchemas = {
   body?: z.ZodObject;

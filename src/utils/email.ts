@@ -2,8 +2,8 @@ import ejs from 'ejs';
 import {convert} from 'html-to-text';
 import nodemailer, {type Transporter} from 'nodemailer';
 import path from 'path';
-import env from '../config/env.config';
-import {IUser} from '../models/user/user.model';
+import env from '~config/env.config';
+import {IUser} from '~models/user/user.model';
 
 interface EmailOptions {
   from: string;
