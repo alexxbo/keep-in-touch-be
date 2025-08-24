@@ -1,8 +1,8 @@
-import RefreshToken from '../../../models/refreshToken/refreshToken.model';
-import {RefreshTokenService} from '../../../services/refreshToken.service';
+import RefreshToken from '~models/refreshToken/refreshToken.model';
+import {RefreshTokenService} from '~services/refreshToken.service';
 
 // Mock dependencies
-jest.mock('../../../models/refreshToken/refreshToken.model');
+jest.mock('~models/refreshToken/refreshToken.model');
 
 describe('RefreshTokenService.getTokenStats', () => {
   beforeEach(() => {

@@ -1,9 +1,9 @@
 import {Types} from 'mongoose';
-import User from '../../../models/user/user.model';
-import {UserService} from '../../../services/user.service';
+import User from '~models/user/user.model';
+import {UserService} from '~services/user.service';
 
 // Mock dependencies
-jest.mock('../../../utils/logger');
+jest.mock('~utils/logger');
 
 describe('UserService.searchUsers', () => {
   beforeEach(async () => {

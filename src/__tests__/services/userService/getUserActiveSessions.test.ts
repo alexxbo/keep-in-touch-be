@@ -1,11 +1,11 @@
 import {Types} from 'mongoose';
-import {IRefreshToken} from '../../../models/refreshToken/refreshToken.model';
-import {RefreshTokenService} from '../../../services/refreshToken.service';
-import {UserService} from '../../../services/user.service';
+import {IRefreshToken} from '~models/refreshToken/refreshToken.model';
+import {RefreshTokenService} from '~services/refreshToken.service';
+import {UserService} from '~services/user.service';
 
 // Mock dependencies
-jest.mock('../../../services/refreshToken.service');
-jest.mock('../../../utils/logger');
+jest.mock('~services/refreshToken.service');
+jest.mock('~utils/logger');
 
 const mockedRefreshTokenService = RefreshTokenService as jest.Mocked<
   typeof RefreshTokenService

@@ -1,12 +1,12 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {authenticateToken} from '../../../middleware/auth';
-import {IUser} from '../../../models/user/user.model';
-import {AuthService} from '../../../services';
-import {BaseError} from '../../../utils/BaseError';
+import {authenticateToken} from '~middleware/auth';
+import {IUser} from '~models/user/user.model';
+import {AuthService} from '~services/auth.service';
+import {BaseError} from '~utils/BaseError';
 
 // Mock dependencies
-jest.mock('../../../services/auth.service');
+jest.mock('~services/auth.service');
 
 const MockedAuthService = AuthService as jest.Mocked<typeof AuthService>;
 

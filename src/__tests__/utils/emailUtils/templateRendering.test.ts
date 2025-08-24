@@ -1,9 +1,9 @@
 import {Types} from 'mongoose';
-import {IUser} from '../../../models/user/user.model';
-import {Email} from '../../../utils/email';
+import {IUser} from '~models/user/user.model';
+import {Email} from '~utils/email';
 
 // Mock the env config
-jest.mock('../../../config/env.config', () => ({
+jest.mock('~config/env.config', () => ({
   APP_NAME: 'Keep in Touch',
   SUPPORT_EMAIL: 'support@keepintouch.com',
 }));

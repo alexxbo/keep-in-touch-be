@@ -1,8 +1,8 @@
 import {Types} from 'mongoose';
-import {UserService} from '../../../services/user.service';
+import {UserService} from '~services/user.service';
 
 // Mock dependencies
-jest.mock('../../../utils/logger');
+jest.mock('~utils/logger');
 
 describe('UserService.userExists', () => {
   beforeEach(async () => {

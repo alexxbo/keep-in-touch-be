@@ -1,10 +1,10 @@
 import {Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {register} from '../../../controllers/auth.controller';
-import {AuthService} from '../../../services/auth.service';
+import {register} from '~controllers/auth.controller';
+import {AuthService} from '~services/auth.service';
 
 // Mock the AuthService
-jest.mock('../../../services/auth.service');
+jest.mock('~services/auth.service');
 const MockedAuthService = AuthService as jest.Mocked<typeof AuthService>;
 
 describe('Auth Controller - register', () => {

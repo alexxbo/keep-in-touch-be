@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import {StatusCodes} from 'http-status-codes';
-import {authorize} from '../../../middleware/auth';
+import {authorize} from '~middleware/auth';
 
 describe('authorize middleware', () => {
   let req: Partial<Request>;

@@ -1,7 +1,7 @@
 import {Types} from 'mongoose';
-import PasswordResetToken from '../../../models/passwordResetToken/passwordResetToken.model';
-import {PasswordResetTokenService} from '../../../services/passwordResetToken.service';
-import {BaseError} from '../../../utils/BaseError';
+import PasswordResetToken from '~models/passwordResetToken/passwordResetToken.model';
+import {PasswordResetTokenService} from '~services/passwordResetToken.service';
+import {BaseError} from '~utils/BaseError';
 import {createTestUser} from '../../testHelpers';
 
 describe('PasswordResetTokenService.validatePasswordResetToken', () => {

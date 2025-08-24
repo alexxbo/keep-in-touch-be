@@ -1,11 +1,11 @@
 import {StatusCodes} from 'http-status-codes';
 import {Types} from 'mongoose';
-import RefreshToken from '../../../models/refreshToken/refreshToken.model';
-import {RefreshTokenService} from '../../../services/refreshToken.service';
-import {BaseError} from '../../../utils/BaseError';
+import RefreshToken from '~models/refreshToken/refreshToken.model';
+import {RefreshTokenService} from '~services/refreshToken.service';
+import {BaseError} from '~utils/BaseError';
 
 // Mock dependencies
-jest.mock('../../../models/refreshToken/refreshToken.model');
+jest.mock('~models/refreshToken/refreshToken.model');
 
 describe('RefreshTokenService.validateRefreshToken', () => {
   const mockUserId = new Types.ObjectId();

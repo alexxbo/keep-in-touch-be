@@ -1,10 +1,10 @@
-import RefreshToken from '../../../models/refreshToken/refreshToken.model';
-import {RefreshTokenService} from '../../../services/refreshToken.service';
-import {logger} from '../../../utils/logger';
+import RefreshToken from '~models/refreshToken/refreshToken.model';
+import {RefreshTokenService} from '~services/refreshToken.service';
+import {logger} from '~utils/logger';
 
 // Mock dependencies
-jest.mock('../../../models/refreshToken/refreshToken.model');
-jest.mock('../../../utils/logger', () => ({
+jest.mock('~models/refreshToken/refreshToken.model');
+jest.mock('~utils/logger', () => ({
   logger: {
     info: jest.fn(),
     warn: jest.fn(),
