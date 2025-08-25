@@ -1,12 +1,15 @@
 import {Router} from 'express';
+
+import {authenticateToken} from '~middleware/auth';
+import {validateRequest} from '~middleware/validation.middleware';
+
 import {
   deleteAccount,
   getCurrentUser,
   getUserById,
   updateProfile,
 } from '~controllers/users.controller';
-import {authenticateToken} from '~middleware/auth';
-import {validateRequest} from '~middleware/validation.middleware';
+
 import {updateProfileSchema, userParamsSchema} from '~validation/user.schemas';
 
 const router = Router();

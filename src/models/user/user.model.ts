@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import {Document, model, Model, Schema} from 'mongoose';
 import z from 'zod';
+
 import {logger} from '~utils/logger';
+
 import {
   emailSchema,
   nameSchema,

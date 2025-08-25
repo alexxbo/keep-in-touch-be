@@ -1,4 +1,8 @@
 import {Router} from 'express';
+
+import {authenticateToken} from '~middleware/auth';
+import {validateRequest} from '~middleware/validation.middleware';
+
 import {
   forgotPassword,
   getSessions,
@@ -10,8 +14,7 @@ import {
   revokeSession,
   updatePassword,
 } from '~controllers/auth.controller';
-import {authenticateToken} from '~middleware/auth';
-import {validateRequest} from '~middleware/validation.middleware';
+
 import {
   forgotPasswordSchema,
   loginSchema,
