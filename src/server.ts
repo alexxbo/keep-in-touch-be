@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import 'module-alias/register';
 
 import {connectToDatabase} from '~config/database.config';
@@ -6,6 +7,8 @@ import env from '~config/env.config';
 import {logger} from '~utils/logger';
 
 import app from './app';
+
+dotenv.config();
 
 process.on('uncaughtException', (err: Error) => {
   logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
