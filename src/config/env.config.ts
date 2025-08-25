@@ -1,8 +1,5 @@
 import {z} from 'zod';
 
-// In test environment, provide defaults to avoid validation errors
-const isTestEnvironment = process.env.NODE_ENV === 'test';
-
 const EnvSchema = z
   .object({
     NODE_ENV: z
@@ -11,29 +8,15 @@ const EnvSchema = z
     PORT: z.coerce.number().default(3000),
 
     // Database
-    MONGODB_URI: z
-      .url('MONGODB_URI must be a valid URL')
-      .default(
-        isTestEnvironment ? 'mongodb://localhost:27017/keep-in-touch-test' : '',
-      ),
+    MONGODB_URI: z.url('MONGODB_URI must be a valid URL'),
 
     // JWT Configuration
     ACCESS_TOKEN_SECRET: z
       .string()
-      .min(32, 'ACCESS_TOKEN_SECRET must be at least 32 characters long')
-      .default(
-        isTestEnvironment
-          ? 'test-jwt-secret-key-for-testing-only-with-sufficient-length'
-          : '',
-      ),
+      .min(32, 'ACCESS_TOKEN_SECRET must be at least 32 characters long'),
     REFRESH_TOKEN_SECRET: z
       .string()
-      .min(32, 'REFRESH_TOKEN_SECRET must be at least 32 characters long')
-      .default(
-        isTestEnvironment
-          ? 'test-jwt-refresh-secret-key-for-testing-only-with-sufficient-length'
-          : '',
-      ),
+      .min(32, 'REFRESH_TOKEN_SECRET must be at least 32 characters long'),
     JWT_ACCESS_EXPIRE: z.string().default('15m'),
     JWT_REFRESH_EXPIRE: z.string().default('7d'),
 

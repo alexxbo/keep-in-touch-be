@@ -10,6 +10,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  setupFiles: ['<rootDir>/jest.setup.env.js'],
   moduleNameMapper: {
     '^~models/(.*)$': '<rootDir>/src/models/$1',
     '^~services/(.*)$': '<rootDir>/src/services/$1',

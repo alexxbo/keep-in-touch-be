@@ -21,10 +21,3 @@ beforeEach(async () => {
     await collection.deleteMany({});
   }
 });
-
-// Mock environment variables for testing
-process.env.NODE_ENV = 'test';
-process.env.SUPPORT_EMAIL = 'support@keepintouch.com';
-process.env.EMAIL_FROM = 'noreply@keepintouch.com';
-process.env.EMAIL_USER = 'test@gmail.com';
-process.env.EMAIL_PASS = 'testpassword';

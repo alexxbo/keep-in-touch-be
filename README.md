@@ -98,6 +98,11 @@ A secure and scalable messaging application backend built with Node.js, Express,
 
 ## 🧪 Testing
 
+The project uses Jest with automatic test environment configuration. Tests run with:
+- **In-memory MongoDB** (mongodb-memory-server) for isolated database testing
+- **Dedicated test environment variables** loaded from `.env.test`
+- **Comprehensive mocking** for external services
+
 ```bash
 # Run all tests
 npm test
@@ -121,6 +126,13 @@ npm run test:middleware         # All middleware tests
 npm run test:utils              # All utility tests
 npm run test:integration        # Integration tests
 ```
+
+### Test Environment
+Tests automatically use configuration from `.env.test` which includes:
+- Isolated test database URI
+- Test-specific JWT secrets
+- Mock email service settings
+- Silent logging to reduce test output noise
 
 ## 🏗 Architecture Overview
 
